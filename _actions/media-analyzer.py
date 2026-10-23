@@ -118,16 +118,18 @@ def analyze_and_process_media():
             continue
 
         # 3. Сбор списка упомянутых вложений регулярными выражениями
-        # Ищет ![[имя_файла]] (Obsidian) и ![альтернативный текст](имя_файла) (Markdown)
-        attachments = []
-        obsidian_matches = re.findall(r"!\[\[(.*?)\]\]", body_text)
-        attachments.extend(obsidian_matches)
-        
-        markdown_matches = re.findall(r"!\[.*?\]\((.*?)\)", body_text)
-        attachments.extend(markdown_matches)
+        raw_attachments = []
+        # Находим ![[photo.jpg]] или ![[photo.jpg|300]]
+        raw_attachments.extend(re.findall(r"!\[\[(.*?)\]\]", body_text))
+        # Находим ![](photo.jpg) или ![описание](photo.jpg)
+        raw_attachments.extend(re.findall(r"!\[.*?\]\((.*?)\)", body_text))
 
-        # Очищаем имена вложений от возможных пробелов и якорей
-        attachments = [att.strip().split("|")[0] for att in attachments if att.strip()]
+        # Очищаем имена файлов от пробелов и обрезаем якоря Obsidian (например, |300)
+        attachments = []
+        for att in raw_attachments:
+            clean_att = att.strip().split("|")[0].strip()
+            if clean_att and clean_att not in attachments:
+                attachments.append(clean_att)
 
         # 4. Контроль комплектности файлов на Входе
         bundle_ready = True
