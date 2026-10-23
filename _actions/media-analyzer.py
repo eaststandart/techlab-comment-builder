@@ -157,9 +157,9 @@ def analyze_and_process_media():
         
         for file_name in attachments:
             old_path = os.path.join(input_dir, file_name)
-            base_ext = os.path.splitext(file_name)[1].lower()
+            base_ext = os.path.splitext(file_name).lower()
             
-            # Делаем заготовки под новые имена сжатых файлов
+            # Извлекаем чистое имя файла (индекс 0)
             clean_name = os.path.splitext(file_name)[0]
             
             if base_ext in [".jpg", ".jpeg", ".png"]:
