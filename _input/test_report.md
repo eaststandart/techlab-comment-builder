@@ -10,3 +10,5 @@ teacher: TechLab
 Тестируем автоматическую отправку фото из Obsidian.
 
 ![[IMG_test.webp]]
+
+![[VID_20261017_110924.mp4]]
