@@ -5,8 +5,7 @@ date: 2026-10-23
 published: true
 teacher: TechLab
 ---
-
 ### 🚀 Проверка медиа-конвейера
 Тестируем автоматическую отправку фото из Obsidian.
 
-![[IMG_test.jpg]]
+![[IMG_test.webp]]
