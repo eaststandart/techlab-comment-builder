@@ -18,7 +18,7 @@ import subprocess
 # КОНФИГУРАЦИЯ ВНЕШНИХ ИНТЕРНЕТ-АДРЕСОВ GITHUB API
 # ==============================================================================
 SITE_API_URL = "https://api.github.com/repos/eaststandart/eaststandart.github.io/dispatches"
-CHECK_URL = "https://api.github.com/repos/eaststandart/techlab-journal-attendance/contents/_output"
+CHECK_URL = "https://api.github.com/repos/eaststandart/techlab-media-attendance/contents/_output"
 REPOSITORY_BRANCH = "main"
 OUTPUT_CHECK_INTERVAL = 60
 MAX_OUTPUT_WAIT_SECONDS = 3600
