@@ -8,7 +8,7 @@ teacher: TechLab
 ### 🚀 Проверка медиа-конвейера
 Тестируем автоматическую отправку фото из Obsidian.
 
-![[IMG_test.webp]]
+![[../_input/IMG_test.webp]]
 
 ![[VID_20261017_110924.mp4]]
 
