@@ -138,8 +138,10 @@ def analyze_and_process_media():
         # Сначала переносим все вложенные медиафайлы комплекта, оптимизируя их на лету
         for file_name in attachments:
             old_file_path = os.path.join(input_dir, file_name)
-            new_file_path = os.path.join(output_dir, file_name)
-            
+            # Меняем расширение только для выходного сжатого файла
+            clean_name = os.path.splitext(file_name)[0]
+            new_file_path = os.path.join(output_dir, f"{clean_name}.webp")
+
             # Подключаем компрессор графики в момент переноса
             from media_compressor_photo import compress_image_to_webp
             compress_image_to_webp(old_file_path, new_file_path)
