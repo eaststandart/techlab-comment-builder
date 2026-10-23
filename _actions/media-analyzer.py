@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 @module  media-analyzer.py
-@about   Модуль проверки комплектности отчетов и перемещения медиа-пакетов.
-@purpose Группировка медиа-файлов по манифестам, контроль даты, флага публикации и перенос готового пакета в исходном виде в _output.
+@about   Модуль проверки комплектности и оптимизации медиа-пакетов.
+@purpose Группировка медиа-файлов, сжатие в WebP на месте в _input и чистый перенос в _output.
 @author  TechLab
-@version 1.0.0
+@version 2.0.0
 """
 
 import os
@@ -109,6 +109,7 @@ def analyze_and_process_media():
         attachments = []
         for att in raw_attachments:
             clean_att = att.strip().split("|")[0].strip()
+            clean_att = os.path.basename(clean_att)
             if clean_att and clean_att not in attachments:
                 attachments.append(clean_att)
 
@@ -134,21 +135,67 @@ def analyze_and_process_media():
         if sorted(f for f in os.listdir(output_dir) if f.endswith(".md")):
             return "OUTPUT_BUSY"
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ФИЗИЧЕСКИЙ ПЕРЕНОС ФАЙЛОВ С ЛОГОМ ПО ФАКТУ ОПЕРАЦИИ (ПОЛНАЯ АНАЛОГИЯ С ЖУРНАЛОМ)
-        # Поочередно перемещаем все медиафайлы комплекта "как есть" через shutil.move
+        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ОПТИМИЗАЦИЯ И СЖАТИЕ НА МЕСТЕ ВНУТРИ ПАПКИ _INPUT (ДО ПЕРЕНОСА)
+        updated_body_text = body_text
+        final_transfer_list = []  # Список файлов, которые мы реально будем двигать на Выход
+
         for file_name in attachments:
+            old_path = os.path.join(input_dir, file_name)
+            base_ext = os.path.splitext(file_name)[1].lower()
+            
+            if base_ext in [".jpg", ".jpeg", ".png"]:
+                clean_name = os.path.splitext(file_name)[0]
+                new_webp_name = f"{clean_name}.webp"
+                webp_path = os.path.join(input_dir, new_webp_name)
+                
+                try:
+                    # Вызываем компрессор. Сжатый файл пишется тут же в _input
+                    from media_compressor_photo import compress_image_to_webp
+                    success = compress_image_to_webp(old_path, webp_path)
+                    
+                    if success:
+                        # Если сжалось успешно, удаляем тяжелый оригинал
+                        if os.path.exists(old_path):
+                            os.remove(old_path)
+                        # Обновляем текст ссылки в манифесте
+                        updated_body_text = updated_body_text.replace(file_name, new_webp_name)
+                        final_transfer_list.append(new_webp_name)
+                        print(f"[АНАЛИЗАТОР] Файл {file_name} успешно пережат в {new_webp_name} внутри _input.")
+                    else:
+                        # Если компрессор вернул False (сбой Pillow), оставляем оригинал
+                        final_transfer_list.append(file_name)
+                except Exception as e:
+                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой вызова Pillow для {file_name}: {str(e)}. Оставляем оригинал.")
+                    final_transfer_list.append(file_name)
+            else:
+                # Видео или другие файлы оставляем как есть
+                final_transfer_list.append(file_name)
+
+        # Пересборка манифеста с обновленным текстом
+        meta_lines = ["---"]
+        for k, v in meta.items():
+            meta_lines.append(f"{k}: {v}")
+        meta_lines.append("---\n")
+        final_md_content = "\n".join(meta_lines) + updated_body_text
+
+        # Перезаписываем .md файл прямо в _input с новыми ссылками .webp перед переносом
+        with open(md_path, "w", encoding="utf-8") as f:
+            f.write(final_md_content)
+
+        # РЕАЛЬНЫЙ ПРОЦЕСС №3: ФИЗИЧЕСКИЙ ПЕРЕНОС ФАЙЛОВ (100% ЧИСТАЯ АНАЛОГИЯ С ЖУРНАЛОМ)
+        # Переносим подготовленные медиафайлы из _input в _output
+        for file_name in final_transfer_list:
             old_file_path = os.path.join(input_dir, file_name)
             new_file_path = os.path.join(output_dir, file_name)
-            
             shutil.move(old_file_path, new_file_path)
             print(f"[АНАЛИЗАТОР] Перемещаем медиафайл комплекта '{md_name}': {file_name}")
 
-        # Перемещаем сам файл текстового манифеста .md в папку Выхода
+        # Перемещаем сам манифест .md в папку Выхода
         new_md_path = os.path.join(output_dir, md_name)
         shutil.move(md_path, new_md_path)
         print(f"[АНАЛИЗАТОР] Манифест {md_name} перемещен в _output.")
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №3: ОФИЦИАЛЬНАЯ ФИКСАЦИЯ СТАТУСА УСПЕХА В GITHUB_ENV
+        # РЕАЛЬНЫЙ ПРОЦЕСС №4: ОФИЦИАЛЬНАЯ ФИКСАЦИЯ СТАТУСА УСПЕХА В GITHUB_ENV
         status = f"SUCCESS_{teacher}"
         if "GITHUB_ENV" in os.environ:
             with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
