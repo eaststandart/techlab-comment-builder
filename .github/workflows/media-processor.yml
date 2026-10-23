@@ -51,7 +51,7 @@ jobs:
       - name: Запуск главного медиа-диспетчера
         id: dispatcher
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MY_FINE_TOKEN }}
         run: |
           # Запускаем центральный питоновский скрипт
           python _actions/media_dispatcher.py
