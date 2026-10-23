@@ -73,7 +73,7 @@ def analyze_and_process_media():
         return "ERROR_DIR_NOT_FOUND"
 
     # Защита от начала нового комплекта, если папка Выход занята
-    output_files = sorted(f for f in os.listdir(output_dir) if os.path.isfile(os.path.join(output_dir, f)))
+    output_files = sorted(f for f in os.listdir(output_dir) if f.endswith(".md"))
     if output_files:
         print(f"[АНАЛИЗАТОР] Папка _output занята: {len(output_files)} файл(ов). Новый комплект не переносим.")
         return "OUTPUT_BUSY"
