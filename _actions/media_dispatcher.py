@@ -153,10 +153,19 @@ def main():
 
         archive_path = os.path.join(published_dir, archive_name)
 
-        # Перенос .md отчета в архивную папку _published
+        # Сохранение обновленного отчета в архивную папку _published и очистка входа
         try:
-            # В боевой версии здесь файл запишется уже со ссылками вместо локальных имен
-            shutil.move(file_path, archive_path)
+            # Восстанавливаем полный текст отчета с YAML-шапкой
+            full_yaml_text = yaml.dump(front_matter, allow_unicode=True, default_flow_style=False)
+            reconstructed_content = f"---\n{full_yaml_text}---\n{body}"
+            
+            # Записываем обновленный файл сразу в архив
+            with open(archive_path, "w", encoding="utf-8") as f_arch:
+                f_arch.write(reconstructed_content)
+                
+            # Удаляем отработанный исходник со входа
+            os.remove(file_path)
+
             print(f"[ДИСПЕТЧЕР] 🚀 Пакет успешно обработан! Файл манифеста перенесен в архив:")
             print(f"            • Направление: _published/{archive_name}")
             
