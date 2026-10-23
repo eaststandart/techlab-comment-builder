@@ -9,6 +9,9 @@ teacher: TechLab
 ### 🚀 Проверка медиа-конвейера
 Тестируем автоматическую отправку фото из Obsidian.
 
-![[2026-10-23_discussion_83_TechLab_video_01.webm]]
+![[IMG_test2.jpg]]
+![[IMG_test1.jpg]]
 
-![[2026-10-23_discussion_83_TechLab_video_02.webm]]
+![[VID_test2.mp4]]
+
+![[VID_test1.mp4]]
