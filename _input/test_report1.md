@@ -10,4 +10,4 @@ published: true
 Тестируем автоматическую отправку фото из Obsidian.
 
 
-![[mediacontent-1792722368803-2026-10-23.webp]]
+![[../_input/mediacontent-1792722368803-2026-10-23.webp]]
