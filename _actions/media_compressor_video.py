@@ -27,7 +27,7 @@ def compress_video_to_webm(source_path, target_path):
     # Базовые параметры геометрии, цвета и звука (720x480, Vorbis Mono 96k)
     # Добавлен принудительный pix_fmt yuv420p для устранения ошибки совместимости профилей
     geo_audio_opts = [
-        "-vf", "scale=w=720:h=480:force_original_aspect_ratio=decrease,sws_flags=swscale",
+        "-vf", "scale=w=720:h=480:force_original_aspect_ratio=decrease:force_divisible_by=2",
         "-pix_fmt", "yuv420p",
         "-r", "30",
         "-c:a", "libvorbis",
@@ -99,9 +99,30 @@ def compress_video_to_webm(source_path, target_path):
         print(f"[КОМПРЕССОР ВИДЕО] Конвертация '{filename}' успешно завершена.")
         return True
 
+    except subprocess.CalledProcessError as e:
+        print(
+            f"[КОМПРЕССОР ВИДЕО] Сбой FFmpeg для '{filename}'. "
+            f"Код возврата: {e.returncode}"
+        )
+        if e.stdout:
+            print(f"[КОМПРЕССОР ВИДЕО] STDOUT:\n{e.stdout.decode('utf-8', errors='replace') if isinstance(e.stdout, bytes) else e.stdout}")
+        if e.stderr:
+            print(f"[КОМПРЕССОР ВИДЕО] STDERR FFmpeg:\n{e.stderr.decode('utf-8', errors='replace') if isinstance(e.stderr, bytes) else e.stderr}")
+
+        for tmp_path in (tmp_crf_path, tmp_bit_path):
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+        return False
+
     except Exception as e:
-        print(f"[КОМПРЕССОР ВИДЕО] ⚠️ Сбой оптимизации видео '{filename}': {str(e)}")
-        # Чистим временные файлы в случае аварии
-        if os.path.exists(tmp_crf_path): os.remove(tmp_crf_path)
-        if os.path.exists(tmp_bit_path): os.remove(tmp_bit_path)
+        print(
+            f"[КОМПРЕССОР ВИДЕО] Непредвиденная ошибка "
+            f"для '{filename}': {type(e).__name__}: {e}"
+        )
+
+        for tmp_path in (tmp_crf_path, tmp_bit_path):
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
         return False
