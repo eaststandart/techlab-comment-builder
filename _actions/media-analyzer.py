@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 @module  media-analyzer.py
-@about   Модуль проверки комплектности и оптимизации медиа-пакетов.
-@purpose Группировка медиа-файлов по манифестам, контроль даты, флага публикации и перенос готового пакета со сжатием в _output.
+@about   Модуль проверки комплектности отчетов и перемещения медиа-пакетов.
+@purpose Группировка медиа-файлов по манифестам, контроль даты, флага публикации и перенос готового пакета в исходном виде в _output.
 @author  TechLab
 @version 1.0.0
 """
@@ -134,28 +134,16 @@ def analyze_and_process_media():
         if sorted(f for f in os.listdir(output_dir) if f.endswith(".md")):
             return "OUTPUT_BUSY"
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ФИЗИЧЕСКИЙ ПЕРЕНОС ФАЙЛОВ С ЛОГОМ ПО ФАКТУ ОПЕРАЦИИ (СТРОГО ПО ОРИГИНАЛУ ЖУРНАЛА)
-        # Сначала переносим все вложенные медиафайлы комплекта, оптимизируя их на лету
+        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ФИЗИЧЕСКИЙ ПЕРЕНОС ФАЙЛОВ С ЛОГОМ ПО ФАКТУ ОПЕРАЦИИ (ПОЛНАЯ АНАЛОГИЯ С ЖУРНАЛОМ)
+        # Поочередно перемещаем все медиафайлы комплекта "как есть" через shutil.move
         for file_name in attachments:
             old_file_path = os.path.join(input_dir, file_name)
             new_file_path = os.path.join(output_dir, file_name)
             
-            # ЗАЩИЩЕННЫЙ БЛОК ДЛЯ СБОРА ЛОГА ОШИБКИ
-            try:
-                from media_compressor_photo import compress_image_to_webp
-                compress_image_to_webp(old_file_path, new_file_path)
-            except Exception as e:
-                print(f"[АНАЛИЗАТОР] ❌ Сбой компрессора на файле {file_name}: {str(e)}")
-                # Откат к чистой логике Журнала — просто копируем файл без сжатия, чтобы не рушить конвейер
-                shutil.copy2(old_file_path, new_file_path)
-            
-            # Гарантированно зачищаем тяжелый оригинал на Входе
-            if os.path.exists(old_file_path):
-                os.remove(old_file_path)
-            
+            shutil.move(old_file_path, new_file_path)
             print(f"[АНАЛИЗАТОР] Перемещаем медиафайл комплекта '{md_name}': {file_name}")
 
-        # Теперь переносим сам файл текстового манифеста .md в папку Выхода
+        # Перемещаем сам файл текстового манифеста .md в папку Выхода
         new_md_path = os.path.join(output_dir, md_name)
         shutil.move(md_path, new_md_path)
         print(f"[АНАЛИЗАТОР] Манифест {md_name} перемещен в _output.")
