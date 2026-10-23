@@ -127,6 +127,7 @@ def analyze_and_process_media():
         # Очищаем имена файлов от пробелов и обрезаем якоря Obsidian (например, |300)
         attachments = []
         for att in raw_attachments:
+            # Сначала делим строку по пайпу, берем только левую часть [0] и очищаем пробелы
             clean_att = att.strip().split("|")[0].strip()
             if clean_att and clean_att not in attachments:
                 attachments.append(clean_att)
