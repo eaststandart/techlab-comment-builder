@@ -97,12 +97,13 @@ def publish_final_report(discussion_number, comment_text, comment_id=None):
         args = ["discussion", "comment", str(discussion_number), "-R", TARGET_SITE_REPO, "--body", comment_text]
         mode_text = "создан"
 
-    # Запускаем команду через gh cli (токен подхватится автоматически из среды GH_TOKEN)
     full_cmd = ["gh"] + args
-    try:
-        subprocess.run(full_cmd, check=True, capture_output=True, text=True, encoding='utf-8')
+    # Запускаем без check=True, чтобы самостоятельно проверить код возврата (returncode)
+    result = subprocess.run(full_cmd, capture_output=True, text=True, encoding='utf-8')
+    
+    if result.returncode == 0:
         print(f"[ПУБЛИКАТОР] 🎉 УСПЕХ! Отчет успешно {mode_text} в Дискуссии №{discussion_number} сайта {TARGET_SITE_REPO}!")
         return True
-    except subprocess.CalledProcessError as e:
-        print(f"[ПУБЛИКАТОР] ❌ Критическая ошибка GitHub CLI при финализации поста: {e.stderr.strip()}")
+    else:
+        print(f"[ПУБЛИКАТОР] ❌ Критическая ошибка GitHub CLI при финализации поста: {result.stderr.strip()}")
         return False
