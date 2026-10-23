@@ -3,9 +3,9 @@
 """
 @module  media_compressor_video.py
 @about   Модуль серверного двухрежимного сжатия видеоматериалов.
-@purpose Имитация пресетов HandBrake (CRF vs 700kbps), сравнение веса и конвертация в WebP/VP9.
+@purpose Имитация пресетов HandBrake (CRF vs 700kbps) с повышенной совместимостью форматов.
 @author  TechLab
-@version 1.0.0
+@version 1.0.1
 """
 
 import os
@@ -24,14 +24,16 @@ def compress_video_to_webm(source_path, target_path):
     tmp_crf_path = os.path.join(base_dir, "tmp_quality_crf.webm")
     tmp_bit_path = os.path.join(base_dir, "tmp_bitrate_700k.webm")
     
-    # Базовые параметры геометрии и звука по шаблонам HandBrake (720x480, Opus Mono 96k)
-    # Использован качественный пресет кодирования 'slower' и ограничение частоты кадров в 30fps
+    # Базовые параметры геометрии, цвета и звука (720x480, Vorbis Mono 96k)
+    # Добавлен принудительный pix_fmt yuv420p для устранения ошибки совместимости профилей
     geo_audio_opts = [
         "-vf", "scale=w=720:h=480:force_original_aspect_ratio=decrease,sws_flags=swscale",
+        "-pix_fmt", "yuv420p",
         "-r", "30",
-        "-c:a", "libopus",
+        "-c:a", "libvorbis",
         "-b:a", "96k",
         "-ac", "1",
+        "-strict", "-2",
         "-deadline", "good",
         "-cpu-used", "2",
         "-y"
@@ -85,7 +87,7 @@ def compress_video_to_webm(source_path, target_path):
                 os.remove(target_path)
             os.rename(tmp_crf_path, target_path)
         else:
-            print(f"[КОМПРЕССОР ФОТО] 🏆 Победа за лимитом битрейта (700 kbps)! Файл компактнее на {size_crf - size_bit} байт.")
+            print(f"[КОМПРЕССОР ВИДЕО] 🏆 Победа за лимитом битрейта (700 kbps)! Файл компактнее на {size_crf - size_bit} байт.")
             if os.path.exists(target_path):
                 os.remove(target_path)
             os.rename(tmp_bit_path, target_path)
