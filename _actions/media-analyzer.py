@@ -31,7 +31,6 @@ def parse_front_matter(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
         
-        # Ищем блок между первыми двумя тройными дефисами
         match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
         if match:
             yaml_block = match.group(1)
@@ -46,22 +45,6 @@ def parse_front_matter(file_path):
         print(f"[АНАЛИЗАТОР] ⚠️ Ошибка парсинга Front Matter в '{os.path.basename(file_path)}': {str(e)}")
     return None, None
 
-def mock_compress_photo(source_path, target_path):
-    """
-    Заготовка для модуля media_compressor_photo.py.
-    Пока просто копирует файл, на Шаге 7 здесь развернется Pillow/WebP.
-    """
-    shutil.copy2(source_path, target_path)
-    return os.path.basename(target_path)
-
-def mock_compress_video(source_path, target_path):
-    """
-    Заготовка для модуля media_compressor_video.py.
-    Пока просто копирует файл, на Шаге 7 здесь развернется оптимизация MP4.
-    """
-    shutil.copy2(source_path, target_path)
-    return os.path.basename(target_path)
-
 def analyze_and_process_media():
     print("\n=== [МОДУЛЬ MEDIA-ANALYZER] АНАЛИЗ ПАПКИ _INPUT ===")
 
@@ -72,10 +55,10 @@ def analyze_and_process_media():
         print("[АНАЛИЗАТОР] ❌ Ошибка: Целевые директории не найдены.")
         return "ERROR_DIR_NOT_FOUND"
 
-    # Защита от начала нового комплекта, если папка Выход занята
+    # Защита от начала нового комплекта строго по расширению .md (как в оригинале Журнала)
     output_files = sorted(f for f in os.listdir(output_dir) if f.endswith(".md"))
     if output_files:
-        print(f"[АНАЛИЗАТОР] Папка _output занята: {len(output_files)} файл(ов). Новый комплект не переносим.")
+        print(f"[АНАЛИЗАТОР] Папка _output занята: {len(output_files)} .md файл(ов). Новый комплект не переносим.")
         return "OUTPUT_BUSY"
 
     all_files = sorted(os.listdir(input_dir))
@@ -119,15 +102,12 @@ def analyze_and_process_media():
 
         # 3. Сбор списка упомянутых вложений регулярными выражениями
         raw_attachments = []
-        # Находим ![[photo.jpg]] или ![[photo.jpg|300]]
         raw_attachments.extend(re.findall(r"!\[\[(.*?)\]\]", body_text))
-        # Находим ![](photo.jpg) или ![описание](photo.jpg)
         raw_attachments.extend(re.findall(r"!\[.*?\]\((.*?)\)", body_text))
 
-        # Очищаем имена файлов от пробелов и обрезаем якоря Obsidian (например, |300)
+        # Надежная очистка имен от пробелов и обрезка якорей Obsidian (|300)
         attachments = []
         for att in raw_attachments:
-            # Сначала делим строку по пайпу, берем только левую часть [0] и очищаем пробелы
             clean_att = att.strip().split("|")[0].strip()
             if clean_att and clean_att not in attachments:
                 attachments.append(clean_att)
@@ -147,68 +127,35 @@ def analyze_and_process_media():
 
         # РЕАЛЬНЫЙ ПРОЦЕСС №1: ФИКСАЦИЯ ОБНАРУЖЕНИЯ ГОТОВОГО КОМПЛЕКТА
         teacher = meta.get("teacher", "Unknown").strip()
-        discussion = meta.get("discussion_number", "0").strip()
-        print(f"[АНАЛИЗАТОР] 🔥 Обнаружен полностью готовый комплект от '{teacher}' для дискуссии №{discussion}!")
+        print(f"[АНАЛИЗАТОР] 🔥 Обнаружен полностью готовый комплект от '{teacher}'!")
         print("[АНАЛИЗАТОР] Поиск завершен. Анализ директории _input остановлен.")
 
-        # Повторная превентивная проверка папки Выход перед физическим переносом
-        if sorted(f for f in os.listdir(output_dir) if os.path.isfile(os.path.join(output_dir, f))):
+        # Превентивная локальная проверка перед физическим переносом файлов
+        if sorted(f for f in os.listdir(output_dir) if f.endswith(".md")):
             return "OUTPUT_BUSY"
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №2: СЖАТИЕ, ОПТИМИЗАЦИЯ И ФИЗИЧЕСКИЙ ПЕРЕНОС В _OUTPUT
-        updated_body_text = body_text
-        
+        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ФИЗИЧЕСКИЙ ПЕРЕНОС ФАЙЛОВ С ЛОГОМ ПО ФАКТУ ОПЕРАЦИИ (СТРОГО ПО ОРИГИНАЛУ ЖУРНАЛА)
+        # Сначала переносим все вложенные медиафайлы комплекта, оптимизируя их на лету
         for file_name in attachments:
-            old_path = os.path.join(input_dir, file_name)
-            base_ext = os.path.splitext(file_name).lower()
+            old_file_path = os.path.join(input_dir, file_name)
+            new_file_path = os.path.join(output_dir, file_name)
             
-            # Извлекаем чистое имя файла (индекс 0)
-            clean_name = os.path.splitext(file_name)[0]
+            # Подключаем компрессор графики в момент переноса
+            from media_compressor_photo import compress_image_to_webp
+            compress_image_to_webp(old_file_path, new_file_path)
             
-            if base_ext in [".jpg", ".jpeg", ".png"]:
-                new_file_name = f"{clean_name}.webp"
-                new_path = os.path.join(output_dir, new_file_name)
-                # Вызываем сжатие фото
-                final_name = mock_compress_photo(old_path, new_path)
-            elif base_ext in [".mp4", ".mov", ".avi"]:
-                new_file_name = f"{clean_name}.mp4"
-                new_path = os.path.join(output_dir, new_file_name)
-                # Вызываем сжатие видео
-                final_name = mock_compress_video(old_path, new_path)
-            else:
-                # Неизвестные типы файлов переносим "как есть"
-                new_file_name = file_name
-                new_path = os.path.join(output_dir, new_file_name)
-                shutil.copy2(old_path, new_path)
-                final_name = new_file_name
-
-            # Обновляем имя файла в тексте отчета
-            updated_body_text = updated_body_text.replace(file_name, final_name)
+            # Гарантированно зачищаем тяжелый оригинал на Входе
+            if os.path.exists(old_file_path):
+                os.remove(old_file_path)
             
-            # Стираем тяжелый оригинал из папки _input
-            if os.path.exists(old_path):
-                os.remove(old_path)
-                print(f"[АНАЛИЗАТОР] Оптимизирован и удален оригинал: {file_name} -> {final_name}")
+            print(f"[АНАЛИЗАТОР] Перемещаем медиафайл комплекта '{md_name}': {file_name}")
 
-        # Сборка финального .md контента с оригинальной YAML-шапкой
-        # Восстанавливаем оригинальные метаданные во Front Matter
-        meta_lines = ["---"]
-        for k, v in meta.items():
-            meta_lines.append(f"{k}: {v}")
-        meta_lines.append("---\n")
-        final_md_content = "\n".join(meta_lines) + updated_body_text
-
-        # Сохраняем готовый .md файл в папку _output
+        # Теперь переносим сам файл текстового манифеста .md в папку Выхода
         new_md_path = os.path.join(output_dir, md_name)
-        with open(new_md_path, "w", encoding="utf-8") as f:
-            f.write(final_md_content)
+        shutil.move(md_path, new_md_path)
+        print(f"[АНАЛИЗАТОР] Манифест {md_name} перемещен в _output.")
 
-        # Полностью удаляем старый .md файл из папки _input
-        if os.path.exists(md_path):
-            os.remove(md_path)
-            print(f"[АНАЛИЗАТОР] Манифест {md_name} перенесен в _output и удален со входа.")
-
-        # РЕАЛЬНЫЙ ПРОЦЕСС №3: ФИКСАЦИЯ СТАТУСА УСПЕХА ДЛЯ ДИСПЕТЧЕРА
+        # РЕАЛЬНЫЙ ПРОЦЕСС №3: ОФИЦИАЛЬНАЯ ФИКСАЦИЯ СТАТУСА УСПЕХА В GITHUB_ENV
         status = f"SUCCESS_{teacher}"
         if "GITHUB_ENV" in os.environ:
             with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:

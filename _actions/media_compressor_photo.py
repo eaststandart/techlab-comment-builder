@@ -40,13 +40,12 @@ def compress_image_to_webp(source_path, target_path):
 
             orig_width, orig_height = img.size
 
-            # Пропорциональный ресайз, чтобы вписать картинку в рамки MAX_WIDTH x MAX_HEIGHT
+            # Пропорциональный ресайз, чтобы вписать картинку в рамки 1280x720
             if orig_width > MAX_WIDTH or orig_height > MAX_HEIGHT:
                 ratio = min(MAX_WIDTH / orig_width, MAX_HEIGHT / orig_height)
                 new_width = int(orig_width * ratio)
                 new_height = int(orig_height * ratio)
                 
-                # Используем качественный фильтр Resampling.LANCZOS
                 try:
                     resample_filter = Image.Resampling.LANCZOS
                 except AttributeError:
@@ -57,11 +56,10 @@ def compress_image_to_webp(source_path, target_path):
             else:
                 print(f"[КОМПРЕССОР ФОТО] Геометрия '{filename}' в пределах нормы ({orig_width}x{orig_height}).")
 
-            # Физическое сохранение в WebP с заданной переменной качества
+            # Физическое сохранение в WebP под исходным именем ссылки
             img.save(target_path, "WEBP", quality=WEBP_QUALITY)
             
-        new_filename = os.path.basename(target_path)
-        return new_filename
+        return filename
 
     except Exception as e:
         print(f"[КОМПРЕССОР ФОТО] ⚠️ Ошибка сжатия файла '{filename}': {str(e)}")

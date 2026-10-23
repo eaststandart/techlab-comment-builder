@@ -116,7 +116,7 @@ def wait_until_output_empty(fine_token):
 
             if response.status_code == 200:
                 output_contents = response.json()
-                live_files = [item.get("name", "") for item in output_contents if item.get("type") == "file"]
+                live_files = [item.get("name", "") for item in output_contents if item.get("name", "").endswith(".md")]
                 if not live_files:
                     print("[ДИСПЕТЧЕР] Папка _output опустела.")
                     return True
@@ -134,9 +134,8 @@ def wait_until_output_empty(fine_token):
 def run_analyzer():
     print("\n[ДИСПЕТЧЕР] Запуск модуля 'media-analyzer.py'...")
     try:
-        # Убираем перехват, чтобы ошибки летели прямо в лог GitHub Actions
-        result = subprocess.run([sys.executable, "_actions/media-analyzer.py"], capture_output=False)
-        return "NO_BUNDLE_READY"  # Временная заглушка для вывода лога
+        result = subprocess.run([sys.executable, "_actions/media-analyzer.py"], capture_output=True, text=True)
+        print(result.stdout)
         
         analyzer_status = "NO_BUNDLE_READY"
         for line in result.stdout.splitlines():
