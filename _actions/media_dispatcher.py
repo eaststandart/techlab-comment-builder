@@ -15,6 +15,7 @@ import yaml
 import shutil
 from datetime import datetime, timedelta
 import media_compressor
+import media_publisher
 
 def parse_front_matter(file_content):
     """Парсит YAML Front Matter из начала markdown-файла."""
@@ -140,6 +141,53 @@ def main():
             print("[ДИСПЕТЧЕР] ✅ Все локальные медиафайлы успешно оптимизированы конвейером.")
         except Exception as e_comp:
             print(f"[ДИСПЕТЧЕР] ❌ Критическая ошибка при работе компрессора: {str(e_comp)}")
+            sys.exit(1)
+
+        # Пересчитываем комплектность, чтобы получить уже новые (.webp) имена файлов для загрузки
+        _, final_media_list = media_compressor.re.findall(r'!\[\[(.*?)\]\]', body), media_compressor.re.findall(r'!\[.*?\]\((.*?)\)', body)
+        final_media_list = list(set(final_media_list[0] + final_media_list[1]))
+        final_media_list = [f for f in final_media_list if not f.startswith('http')]
+
+        # ПООЧЕРЕДНАЯ ЗАГРУЗКА МЕДИАФАЙЛОВ В ОБЛАКО GITHUB
+        for media_file in final_media_list:
+            clean_media_name = media_file.split('|')[0].strip()
+            # Загружаем файл и получаем вечную ссылку user-attachments
+            github_url = media_publisher.upload_media_to_github(clean_media_name, input_dir, disc_num)
+            
+            if github_url:
+                # Мгновенно подменяем локальное имя файла на сетевую ссылку в тексте заметки
+                body = body.replace(media_file, github_url)
+                # Удаляем сжатый файл с диска, так как он уже сохранен в облаке Дискуссий
+                media_path = os.path.join(input_dir, clean_media_name)
+                if os.path.exists(media_path):
+                    os.remove(media_path)
+            else:
+                print(f"[ДИСПЕТЧЕР] ❌ Критическая ошибка: Не удалось загрузить медиафайл {clean_media_name}. Отмена публикации отчета.")
+                sys.exit(1)
+
+        # НАВЕДЕНИЕ ТЕКСТОВОЙ КРАСОТЫ: Формируем шапку и подвал поста для Дискуссий
+        day_short_map = {"понедельник": "пн", "вторник": "вт", "среда": "ср", "четверг": "чт", "пятница": "пт", "суббота": "сб", "воскресенье": "вс"}
+        try:
+            parsed_date = datetime.strptime(clean_date, "%Y-%m-%d")
+            # Переводим английский день недели в русский текст
+            eng_day = parsed_date.strftime("%A").lower()
+            day_translation = {"monday": "понедельник", "tuesday": "вторник", "wednesday": "среда", "thursday": "четверг", "friday": "пятница", "saturday": "суббота", "sunday": "воскресенье"}
+            ru_day = day_translation.get(eng_day, "выходной")
+        except:
+            ru_day = "занятие"
+        
+        day_suffix = day_short_map.get(ru_day, "вс")
+        formatted_date = datetime.strptime(clean_date, "%Y-%m-%d").strftime("%d.%m.%Y")
+
+        # Формируем итоговый текст комментария (Маркдаун жирности через звезды для красоты)
+        post_header = f"### 📸 Медиа-материалы творческого процесса за {formatted_date} г. ({day_suffix})\n\n"
+        post_footer = f"\n\n---\n*Материалы подготовил и опубликовал преподаватель: **{teacher}***"
+        final_comment_text = f"{post_header}{body.strip()}{post_footer}"
+
+        # ФИНАЛЬНАЯ ОТПРАВКА В ДИСКУССИИ (Публикация или Точечная Перезапись)
+        pub_success = media_publisher.publish_final_report(disc_num, final_comment_text, comment_id)
+        if not pub_success:
+            print("[ДИСПЕТЧЕР] ❌ Отказ сервера при публикации финального поста.")
             sys.exit(1)
 
         print("[ДИСПЕТЧЕР] Запуск этапа архивации...")
