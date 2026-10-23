@@ -109,6 +109,8 @@ def analyze_and_process_media():
         attachments = []
         for att in raw_attachments:
             clean_att = att.strip().split("|")[0].strip()
+            # Отрезаем любые относительные пути вроде ../_input/, оставляя только чистое имя файла
+            clean_att = os.path.basename(clean_att)
             if clean_att and clean_att not in attachments:
                 attachments.append(clean_att)
 
