@@ -25,11 +25,15 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
     if not teacher:
         teacher = os.environ.get("GITHUB_ACTOR", "WebUser").strip()
 
-    # Сборка базового префикса имени по стандартам CMS
+    import time
+    # Генерируем единый секундный штамп для всего пакета
+    timestamp = int(time.time())
+
+    # Сборка базового префикса со штампом строго ПОСЛЕ даты через дефис
     if comment_id:
-        base_filename = f"{date_str}_discussion_{discussion}_comment_{comment_id}_{teacher}"
+        base_filename = f"{date_str}-{timestamp}_discussion_{discussion}_comment_{comment_id}_{teacher}"
     else:
-        base_filename = f"{date_str}_discussion_{discussion}_{teacher}"
+        base_filename = f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}"
 
     updated_body_text = body_text
     final_transfer_list = []
