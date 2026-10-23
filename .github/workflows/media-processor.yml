@@ -40,10 +40,8 @@ jobs:
       - name: Install Python Dependencies
         run: pip install pyyaml requests pillow
 
-      - name: Install FFmpeg System Dependency
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+      - name: Setup Fast FFmpeg Cache
+        uses: AnimMouse/setup-ffmpeg@v1
 
       - name: Run Smart Media Bundle Dispatcher
         env:
