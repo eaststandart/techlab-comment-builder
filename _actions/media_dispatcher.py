@@ -167,6 +167,7 @@ def main():
                 sys.exit(1)
 
         # НАВЕДЕНИЕ ТЕКСТОВОЙ КРАСОТЫ: Формируем шапку и подвал поста для Дискуссий
+        clean_date = target_date if target_date else today_str
         day_short_map = {"понедельник": "пн", "вторник": "вт", "среда": "ср", "четверг": "чт", "пятница": "пт", "суббота": "сб", "воскресенье": "вс"}
         try:
             parsed_date = datetime.strptime(clean_date, "%Y-%m-%d")

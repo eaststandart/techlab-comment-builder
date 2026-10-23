@@ -90,15 +90,16 @@ def publish_final_report(discussion_number, comment_text, comment_id=None):
     """Отправляет итоговый сформированный пост в Дискуссии сайта через GitHub CLI."""
     if comment_id:
         print(f"[ПУБЛИКАТОР] 🔄 Запуск КОНТУРА ПЕРЕЗАПИСИ комментария ID: {comment_id}...")
-        args = ["discussion", "edit-comment", str(comment_id), "-R", TARGET_SITE_REPO, "--body", comment_text]
+        # Строгий синтаксис редактирования: gh discussion comment <ID> -R repo --edit -b "текст"
+        args = ["discussion", "comment", str(comment_id), "-R", TARGET_SITE_REPO, "--edit", "-b", comment_text]
         mode_text = "обновлен"
     else:
         print(f"[ПУБЛИКАТОР] 🚀 Запуск КОНТУРА ПУБЛИКАЦИИ нового поста...")
-        args = ["discussion", "comment", str(discussion_number), "-R", TARGET_SITE_REPO, "--body", comment_text]
+        # Строгий синтаксис создания: gh discussion comment <номер> -R repo -b "текст"
+        args = ["discussion", "comment", str(discussion_number), "-R", TARGET_SITE_REPO, "-b", comment_text]
         mode_text = "создан"
 
     full_cmd = ["gh"] + args
-    # Запускаем без check=True, чтобы самостоятельно проверить код возврата (returncode)
     result = subprocess.run(full_cmd, capture_output=True, text=True, encoding='utf-8')
     
     if result.returncode == 0:
@@ -107,3 +108,4 @@ def publish_final_report(discussion_number, comment_text, comment_id=None):
     else:
         print(f"[ПУБЛИКАТОР] ❌ Критическая ошибка GitHub CLI при финализации поста: {result.stderr.strip()}")
         return False
+
