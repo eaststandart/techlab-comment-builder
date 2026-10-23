@@ -77,7 +77,7 @@ def upload_media_to_github(file_name, input_dir, discussion_number):
 
     # 4. Формируем прямую интернет-ссылку на файл, по которой его увидят Дискуссии и Obsidian
     # Формат ссылки: https://github.io
-    github_cdn_url = f"https://github.io_{discussion_number}/{file_name}"
+    github_cdn_url = f"https://eaststandart.github.io/assets/media_gate/disc_{discussion_number}/{file_name}"
     print(f"[ПУБЛИКАТОР] ✅ Вечная ссылка сформирована: {github_cdn_url}")
     
     # Удаляем локальный оригинал со входа конвейера
