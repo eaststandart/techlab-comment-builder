@@ -30,8 +30,7 @@ def get_output_media_files():
     output_dir = os.path.join(os.getcwd(), "_output")
     if not os.path.exists(output_dir):
         return []
-    # Собираем все файлы из _output для контроля очистки
-    return sorted(f for f in os.listdir(output_dir) if os.path.isfile(os.path.join(output_dir, f)))
+    return sorted(f for f in os.listdir(output_dir) if f.endswith(".md"))
 
 def sync_repository():
     """
@@ -117,7 +116,6 @@ def wait_until_output_empty(fine_token):
 
             if response.status_code == 200:
                 output_contents = response.json()
-                # Считаем любые файлы в папке _output на удаленном репозитории
                 live_files = [item.get("name", "") for item in output_contents if item.get("type") == "file"]
                 if not live_files:
                     print("[ДИСПЕТЧЕР] Папка _output опустела.")
