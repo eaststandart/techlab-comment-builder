@@ -44,7 +44,7 @@ def upload_media_to_github(file_name, input_dir, discussion_number):
 
     # 1. Клонируем репозиторий основного сайта, используя права администратора
     token = os.environ.get("SITE_WRITE_TOKEN", "")
-    clone_url = f"https://{token}@://github.com{TARGET_SITE_REPO}.git"
+    clone_url = f"https://{token}@github.com/{TARGET_SITE_REPO}.git"
     
     success, output = run_command(["git", "clone", "--depth", "1", clone_url, tmp_clone_dir])
     if not success:
