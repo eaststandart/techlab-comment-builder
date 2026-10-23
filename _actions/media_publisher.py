@@ -3,108 +3,106 @@
 """
 @module  media_publisher.py
 @about   Модуль публикации медиа-отчетов в GitHub Discussions.
-@purpose Загрузка медиа через контур Issues и публикация в репозиторий сайта с флагом -R.
+@purpose Загрузка файлов через Git-транспорт на сайт и публикация в Дискуссии.
 @author  TechLab
-@version 1.1.0
+@version 1.2.0
 """
 
 import os
 import sys
 import subprocess
-import re
+import shutil
 
-# Название целевого репозитория, куда отправляются готовые отчеты родителей
+# Репозиторий сайта, куда отправляются готовые медиафайлы и посты
 TARGET_SITE_REPO = "eaststandart/eaststandart.github.io"
 
-def run_gh_command(args):
-    """Безопасно запускает системную команду GitHub CLI."""
-    full_cmd = ["gh"] + args
+def run_command(cmd, cwd=None):
+    """Вспомогательная функция для запуска системных команд."""
     try:
-        result = subprocess.run(full_cmd, capture_output=True, text=True, check=True, encoding='utf-8')
-        return True, result.stdout.strip()
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True, cwd=cwd, encoding='utf-8')
+        return True, res.stdout.strip()
     except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.strip() if e.stderr else e.stdout.strip()
-        return False, error_msg
+        err = e.stderr.strip() if e.stderr else e.stdout.strip()
+        return False, err
 
 def upload_media_to_github(file_name, input_dir, discussion_number):
     """
-    Загружает локальный файл в облако user-attachments GitHub.
-    Использует легальный обходной контур Issues текущего репозитория.
+    Загружает локальный файл напрямую в медиа-архив репозитория сайта.
+    Возвращает прямую интернет-ссылку на картинку.
     """
-    file_path = os.path.join(input_dir, file_name)
-    if not os.path.exists(file_path):
+    source_path = os.path.join(input_dir, file_name)
+    if not os.path.exists(source_path):
         print(f"[ПУБЛИКАТОР] ⚠️ Файл {file_name} не найден для загрузки.")
         return None
 
-    print(f"[ПУБЛИКАТОР] 📤 Загрузка в облако GitHub через буфер задач: '{file_name}'...")
+    print(f"[ПУБЛИКАТОР] 📤 Интеграция файла через Git-архив сайта: '{file_name}'...")
+
+    # Создаем временную изолированную папку для клонирования сайта на сервере
+    tmp_clone_dir = os.path.join(os.environ.get("RUNNER_TEMP", "/tmp"), "site_clone")
+    if os.path.exists(tmp_clone_dir):
+        shutil.rmtree(tmp_clone_dir)
+
+    # 1. Клонируем репозиторий основного сайта, используя права администратора
+    token = os.environ.get("GH_TOKEN", "")
+    clone_url = f"https://{token}@github.com/{TARGET_SITE_REPO}.git"
     
-    # Легальная команда создания задачи с флагом загрузки файла медиа
-    # gh issue create --title "Заголовок" --body "Описание" --attach <путь_к_файлу>
-    args = [
-        "issue",
-        "create",
-        "--title", f"Медиа-буфер: {file_name}",
-        "--body", "Автоматическая загрузка файла в облако подсистемы.",
-        f"--attach={file_path}"
-    ]
-    
-    success, output = run_gh_command(args)
+    success, output = run_command(["git", "clone", "--depth", "1", clone_url, tmp_clone_dir])
     if not success:
-        print(f"[ПУБЛИКАТОР] ❌ Ошибка GitHub CLI при загрузке файла: {output}")
+        print(f"[ПУБЛИКАТОР] ❌ Ошибка клонирования сайта: {output}")
         return None
 
-    # Сканируем вывод команды точным регулярным выражением в поисках вечной ссылки user-attachments
-    url_match = re.search(r'https://github\.com/user-attachments/assets/[a-zA-Z0-9\-_]+', output)
-    
-    if url_match:
-        github_url = url_match.group(0)
-        print(f"[ПУБЛИКАТОР] ✅ Файл успешно загружен! Ссылка: {github_url}")
+    # 2. Создаем структуру папки медиа-архива внутри сайта (разбиваем по номерам дискуссий)
+    media_rel_dir = os.path.join("assets", "media_ шлюз", f"disc_{discussion_number}")
+    media_full_dir = os.path.join(tmp_clone_dir, media_rel_dir)
+    os.makedirs(media_full_dir, exist_ok=True)
+
+    # Переносим сжатый файл внутрь папки сайта
+    target_path = os.path.join(media_full_dir, file_name)
+    shutil.copy2(source_path, target_path)
+
+    # 3. Публикуем файл в репозиторий сайта через Git commit
+    try:
+        run_command(["git", "config", "user.name", "TechLab Media Bot"], cwd=tmp_clone_dir)
+        run_command(["git", "config", "user.email", "media-bot@techlab.local"], cwd=tmp_clone_dir)
+        run_command(["git", "add", "."], cwd=tmp_clone_dir)
         
-        # Находим номер созданной задачи в выводе, чтобы мгновенно закрыть её для чистоты
-        # Обычно вывод выглядит как: https://github.com
-        issue_num_match = re.search(r'/issues/(\d+)', output)
-        if issue_num_match:
-            issue_num = issue_num_match.group(1)
-            # Закрываем и скрываем временную задачу: gh issue close <номер> --reason "completed"
-            run_gh_command(["issue", "close", issue_num, "--reason", "completed"])
-            
-        return github_url
-    else:
-        print("[ПУБЛИКАТОР] ⚠️ Файл загружен, но регулярное выражение не смогло извлечь интернет-ссылку.")
+        diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=tmp_clone_dir)
+        if diff_check.returncode != 0:
+            run_command(["git", "commit", "-m", f"автоматика: добавлен медиафайл {file_name} для дискуссии {discussion_number} [skip ci]"], cwd=tmp_clone_dir)
+            run_command(["git", "push", "origin", "main"], cwd=tmp_clone_dir)
+            print(f"[ПУБЛИКАТОР] Файл {file_name} успешно зафиксирован в репозитории сайта.")
+    except Exception as e_git:
+        print(f"[ПУБЛИКАТОР] ❌ Ошибка Git-транспорта медиа: {str(e_git)}")
         return None
+
+    # 4. Формируем прямую интернет-ссылку на файл, по которой его увидят Дискуссии и Obsidian
+    # Формат ссылки: https://github.io
+    github_cdn_url = f"https://github.io_{discussion_number}/{file_name}"
+    print(f"[ПУБЛИКАТОР] ✅ Вечная ссылка сформирована: {github_cdn_url}")
+    
+    # Удаляем локальный оригинал со входа конвейера
+    if os.path.exists(source_path):
+        os.remove(source_path)
+        
+    return github_cdn_url
 
 def publish_final_report(discussion_number, comment_text, comment_id=None):
-    """
-    Отправляет итоговый сформированный пост в Дискуссии.
-    Принудительно перенаправляет поток в репозиторий сайта через флаг -R.
-    """
+    """Отправляет итоговый сформированный пост в Дискуссии сайта через GitHub CLI."""
     if comment_id:
         print(f"[ПУБЛИКАТОР] 🔄 Запуск КОНТУРА ПЕРЕЗАПИСИ комментария ID: {comment_id}...")
-        # Команда редактирования: gh discussion edit-comment <ID> -R owner/repo --body "текст"
-        args = [
-            "discussion", 
-            "edit-comment", 
-            str(comment_id), 
-            "-R", TARGET_SITE_REPO, 
-            "--body", comment_text
-        ]
+        args = ["discussion", "edit-comment", str(comment_id), "-R", TARGET_SITE_REPO, "--body", comment_text]
         mode_text = "обновлен"
     else:
         print(f"[ПУБЛИКАТОР] 🚀 Запуск КОНТУРА ПУБЛИКАЦИИ нового поста...")
-        # Команда создания: gh discussion comment <номер> -R owner/repo --body "текст"
-        args = [
-            "discussion", 
-            "comment", 
-            str(discussion_number), 
-            "-R", TARGET_SITE_REPO, 
-            "--body", comment_text
-        ]
+        args = ["discussion", "comment", str(discussion_number), "-R", TARGET_SITE_REPO, "--body", comment_text]
         mode_text = "создан"
 
-    success, output = run_gh_command(args)
-    if success:
+    # Запускаем команду через gh cli (токен подхватится автоматически из среды GH_TOKEN)
+    full_cmd = ["gh"] + args
+    try:
+        subprocess.run(full_cmd, check=True, capture_output=True, text=True, encoding='utf-8')
         print(f"[ПУБЛИКАТОР] 🎉 УСПЕХ! Отчет успешно {mode_text} в Дискуссии №{discussion_number} сайта {TARGET_SITE_REPO}!")
         return True
-    else:
-        print(f"[ПУБЛИКАТОР] ❌ Критическая ошибка GitHub CLI при финализации поста: {output}")
+    except subprocess.CalledProcessError as e:
+        print(f"[ПУБЛИКАТОР] ❌ Критическая ошибка GitHub CLI при финализации поста: {e.stderr.strip()}")
         return False
