@@ -1,8 +1,11 @@
 ---
 discussion_number: 38
-date: "2026-10-24"
-teacher: "TechLab"
+discussion_comment: 1867726
+date: 2026-10-24
+published: false
+teacher: TechLab
 ---
+
 ### 🚀 Проверка медиа-конвейера
 Тестируем автоматическую отправку фото из Obsidian.
 
