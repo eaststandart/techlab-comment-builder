@@ -134,8 +134,9 @@ def wait_until_output_empty(fine_token):
 def run_analyzer():
     print("\n[ДИСПЕТЧЕР] Запуск модуля 'media-analyzer.py'...")
     try:
-        result = subprocess.run([sys.executable, "_actions/media-analyzer.py"], capture_output=True, text=True)
-        print(result.stdout)
+        # Убираем перехват, чтобы ошибки летели прямо в лог GitHub Actions
+        result = subprocess.run([sys.executable, "_actions/media-analyzer.py"], capture_output=False)
+        return "NO_BUNDLE_READY"  # Временная заглушка для вывода лога
         
         analyzer_status = "NO_BUNDLE_READY"
         for line in result.stdout.splitlines():
