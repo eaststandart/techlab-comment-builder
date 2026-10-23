@@ -1,0 +1,143 @@
+# ==============================================================================
+# @module  media-processor.yml
+# @about   Модуль автоматизации медиа-конвейера TechLab.
+# @purpose Защита от параллельного запуска, вызов Python-процессора и Git-финализация.
+# @author  TechLab
+# @version 1.0.0
+# ==============================================================================
+
+name: TechLab Media Content Processor
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '_input/**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  discussions: write
+
+# Защищаем конвейер от одновременной работы нескольких серверов.
+# Запросы будут обрабатываться строго последовательно один за другим.
+concurrency:
+  group: media-dispatcher
+  cancel-in-progress: false
+
+jobs:
+  process-media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Проверка исходного кода репозитория
+        uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
+          fetch-depth: 0
+
+      - name: Настройка среды Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Установка зависимостей (Pillow для WebP)
+        run: |
+          pip install pillow pyyaml requests
+
+      - name: Запуск главного медиа-диспетчера
+        id: dispatcher
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Запускаем центральный питоновский скрипт
+          python _actions/media_dispatcher.py
+
+      - name: Финальная архивация отчетов и синхронизация Git
+        id: publish
+        if: success()
+        shell: bash
+        run: |
+          set -e
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@://github.com"
+
+          # Получаем актуальную ветку из сети до формирования коммита
+          if ! git fetch origin main; then
+            echo "Не удалось связаться с GitHub. Повтор через 5 минут."
+            sleep 300
+            git fetch origin main
+          fi
+
+          # Добавляем все изменения из папок входа и архивапубликации
+          git add -A -- _input _published
+
+          if git diff --cached --quiet; then
+            echo "Изменений для публикации нет. Все пакеты были черновиками или пропущены."
+            exit 0
+          fi
+
+          git commit -m "автоматика: архивация медиа-отчетов в _published [skip ci]"
+
+          MAX_ATTEMPTS=3
+          RETRY_INTERVAL_SECONDS=600
+
+          # Ваш эталонный цикл безопасной публикации с автоматическим rebase при конфликтах
+          for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
+            echo "Попытка публикации коммита $attempt из $MAX_ATTEMPTS"
+
+            if git push origin HEAD:main; then
+              echo "Все отчеты и медиа успешно заархивированы на GitHub!"
+              exit 0
+            fi
+
+            if [ "$attempt" -eq "$MAX_ATTEMPTS" ]; then
+              break
+            fi
+
+            if ! git fetch origin main; then
+              echo "GitHub временно недоступен. Повтор через 10 минут."
+              sleep "$RETRY_INTERVAL_SECONDS"
+              continue
+            fi
+
+            if git merge-base --is-ancestor origin/main HEAD; then
+              echo "Удалённая ветка не опережает локальную. Повтор через 10 минут."
+              sleep "$RETRY_INTERVAL_SECONDS"
+              continue
+            fi
+
+            echo "Обнаружены параллельные коммиты от другого преподавателя. Выполняем автоматический rebase."
+
+            if git rebase origin/main; then
+              echo "Rebase успешно завершён. Повторяем отправку коммита."
+              continue
+            fi
+
+            # Автоматически разрешаем конфликты в папке архива (сохраняем обе версии, так как файлы уникальны)
+            conflicts="$(git diff --name-only --diff-filter=U)"
+            for file in $conflicts; do
+              if [[ "$file" == _published/* ]]; then
+                echo "Разрешение конфликта в архиве $file: берем локальную версию."
+                git checkout --ours -- "$file"
+                git add -- "$file"
+              else
+                echo "Неожиданный конфликт в коде скриптов: $file. Отмена rebase."
+                git rebase --abort || true
+                exit 1
+              fi
+            done
+
+            if ! GIT_EDITOR=true git rebase --continue; then
+              git rebase --abort || true
+              echo "Не удалось автоматически завершить rebase."
+              exit 1
+            fi
+          done
+
+          echo "Не удалось опубликовать изменения после $MAX_ATTEMPTS попыток."
+          exit 1
