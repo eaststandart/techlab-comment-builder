@@ -14,6 +14,10 @@ import sys
 import shutil
 from datetime import datetime, timedelta
 
+# Подключаем оба наших компрессора
+from media_compressor_photo import compress_image_to_webp
+from media_compressor_video import compress_video_to_webm
+
 def get_vladivostok_date():
     """
     Возвращает текущую дату в часовом поясе Владивостока (UTC+10).
@@ -137,38 +141,52 @@ def analyze_and_process_media():
 
         # РЕАЛЬНЫЙ ПРОЦЕСС №2: ОПТИМИЗАЦИЯ И СЖАТИЕ НА МЕСТЕ ВНУТРИ ПАПКИ _INPUT (ДО ПЕРЕНОСА)
         updated_body_text = body_text
-        final_transfer_list = []  # Список файлов, которые мы реально будем двигать на Выход
+        final_transfer_list = []  # Список файлов для чистого переноса на Выход
 
         for file_name in attachments:
             old_path = os.path.join(input_dir, file_name)
             base_ext = os.path.splitext(file_name)[1].lower()
+            clean_name = os.path.splitext(file_name)[0]
             
+            # --- БЛОК ОБРАБОТКИ ГРАФИКИ ---
             if base_ext in [".jpg", ".jpeg", ".png"]:
-                clean_name = os.path.splitext(file_name)[0]
                 new_webp_name = f"{clean_name}.webp"
                 webp_path = os.path.join(input_dir, new_webp_name)
                 
                 try:
-                    # Вызываем компрессор. Сжатый файл пишется тут же в _input
-                    from media_compressor_photo import compress_image_to_webp
                     success = compress_image_to_webp(old_path, webp_path)
-                    
                     if success:
-                        # Если сжалось успешно, удаляем тяжелый оригинал
-                        if os.path.exists(old_path):
-                            os.remove(old_path)
-                        # Обновляем текст ссылки в манифесте
+                        if os.path.exists(old_path): os.remove(old_path)
                         updated_body_text = updated_body_text.replace(file_name, new_webp_name)
                         final_transfer_list.append(new_webp_name)
-                        print(f"[АНАЛИЗАТОР] Файл {file_name} успешно пережат в {new_webp_name} внутри _input.")
+                        print(f"[АНАЛИЗАТОР] Фото {file_name} успешно пережато в {new_webp_name} в _input.")
                     else:
-                        # Если компрессор вернул False (сбой Pillow), оставляем оригинал
                         final_transfer_list.append(file_name)
                 except Exception as e:
-                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой вызова Pillow для {file_name}: {str(e)}. Оставляем оригинал.")
+                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой Pillow для {file_name}: {str(e)}. Оставляем оригинал.")
+                    final_transfer_list.append(file_name)
+                    
+            # --- БЛОК ОБРАБОТКИ ВИДЕО (НОВОЕ!) ---
+            elif base_ext in [".mp4", ".mov", ".avi", ".mkv"]:
+                new_webm_name = f"{clean_name}.webm"
+                webm_path = os.path.join(input_dir, new_webm_name)
+                
+                try:
+                    # Вызываем наше умное двойное сжатие видео
+                    success = compress_video_to_webm(old_path, webm_path)
+                    if success:
+                        if os.path.exists(old_path): os.remove(old_path)
+                        # Автоматически обновляем ссылку в тексте .md на .webm формат
+                        updated_body_text = updated_body_text.replace(file_name, new_webm_name)
+                        final_transfer_list.append(new_webm_name)
+                        print(f"[АНАЛИЗАТОР] Видео {file_name} успешно пережато в {new_webm_name} в _input.")
+                    else:
+                        final_transfer_list.append(file_name)
+                except Exception as e:
+                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой FFmpeg для {file_name}: {str(e)}. Оставляем оригинал видео.")
                     final_transfer_list.append(file_name)
             else:
-                # Видео или другие файлы оставляем как есть
+                # Любые другие файлы (например, если уже лежит готовый .webm) просто пускаем транзитом
                 final_transfer_list.append(file_name)
 
         # Пересборка манифеста с обновленным текстом

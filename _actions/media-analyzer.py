@@ -14,9 +14,10 @@ import sys
 import shutil
 from datetime import datetime, timedelta
 
-# Подключаем оба наших компрессора
+# Подключаем оба наших компрессора и модуль стандартизации имен
 from media_compressor_photo import compress_image_to_webp
 from media_compressor_video import compress_video_to_webm
+from media_renamer import standardize_bundle_names
 
 def get_vladivostok_date():
     """
@@ -139,64 +140,48 @@ def analyze_and_process_media():
         if sorted(f for f in os.listdir(output_dir) if f.endswith(".md")):
             return "OUTPUT_BUSY"
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ОПТИМИЗАЦИЯ И СЖАТИЕ НА МЕСТЕ ВНУТРИ ПАПКИ _INPUT (ДО ПЕРЕНОСА)
-        updated_body_text = body_text
-        final_transfer_list = []  # Список файлов для чистого переноса на Выход
+        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ВЫЗОВ ВНЕШНЕГО ПЕРЕИМЕНОВАТЕЛЯ CMS СТРОГО ДО СЖАТИЯ
+        updated_body_text, target_files_list, base_filename = standardize_bundle_names(
+            input_dir, meta, body_text, attachments
+        )
 
-        for file_name in attachments:
-            old_path = os.path.join(input_dir, file_name)
-            base_ext = os.path.splitext(file_name)[1].lower()
-            clean_name = os.path.splitext(file_name)[0]
+        # РЕАЛЬНЫЙ ПРОЦЕСС №2.5: СЖАТИЕ И ОПТИМИЗАЦИЯ УЖЕ СТАНДАРТИЗИРОВАННЫХ ФАЙЛОВ В _INPUT
+        final_transfer_list = []
+        for raw_name, target_name, media_type in target_files_list:
+            raw_path = os.path.join(input_dir, raw_name)
+            target_path = os.path.join(input_dir, target_name)
             
-            # --- БЛОК ОБРАБОТКИ ГРАФИКИ ---
-            if base_ext in [".jpg", ".jpeg", ".png"]:
-                new_webp_name = f"{clean_name}.webp"
-                webp_path = os.path.join(input_dir, new_webp_name)
-                
+            if media_type == "photo":
                 try:
-                    success = compress_image_to_webp(old_path, webp_path)
-                    if success:
-                        if os.path.exists(old_path): os.remove(old_path)
-                        updated_body_text = updated_body_text.replace(file_name, new_webp_name)
-                        final_transfer_list.append(new_webp_name)
-                        print(f"[АНАЛИЗАТОР] Фото {file_name} успешно пережато в {new_webp_name} в _input.")
+                    if compress_image_to_webp(raw_path, target_path):
+                        if os.path.exists(raw_path): os.remove(raw_path)
+                        final_transfer_list.append(target_name)
                     else:
-                        final_transfer_list.append(file_name)
+                        final_transfer_list.append(raw_name)
                 except Exception as e:
-                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой Pillow для {file_name}: {str(e)}. Оставляем оригинал.")
-                    final_transfer_list.append(file_name)
-                    
-            # --- БЛОК ОБРАБОТКИ ВИДЕО (НОВОЕ!) ---
-            elif base_ext in [".mp4", ".mov", ".avi", ".mkv"]:
-                new_webm_name = f"{clean_name}.webm"
-                webm_path = os.path.join(input_dir, new_webm_name)
-                
+                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой Pillow для {raw_name}: {str(e)}. Транзит.")
+                    final_transfer_list.append(raw_name)
+            elif media_type == "video":
                 try:
-                    # Вызываем наше умное двойное сжатие видео
-                    success = compress_video_to_webm(old_path, webm_path)
-                    if success:
-                        if os.path.exists(old_path): os.remove(old_path)
-                        # Автоматически обновляем ссылку в тексте .md на .webm формат
-                        updated_body_text = updated_body_text.replace(file_name, new_webm_name)
-                        final_transfer_list.append(new_webm_name)
-                        print(f"[АНАЛИЗАТОР] Видео {file_name} успешно пережато в {new_webm_name} в _input.")
+                    if compress_video_to_webm(raw_path, target_path):
+                        if os.path.exists(raw_path): os.remove(raw_path)
+                        final_transfer_list.append(target_name)
                     else:
-                        final_transfer_list.append(file_name)
+                        final_transfer_list.append(raw_name)
                 except Exception as e:
-                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой FFmpeg для {file_name}: {str(e)}. Оставляем оригинал видео.")
-                    final_transfer_list.append(file_name)
+                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой FFmpeg для {raw_name}: {str(e)}. Транзит.")
+                    final_transfer_list.append(raw_name)
             else:
-                # Любые другие файлы (например, если уже лежит готовый .webm) просто пускаем транзитом
-                final_transfer_list.append(file_name)
+                final_transfer_list.append(raw_name)
 
-        # Пересборка манифеста с обновленным текстом
+        # Пересборка Front Matter с принудительной пустой строкой \n\n
         meta_lines = ["---"]
         for k, v in meta.items():
             meta_lines.append(f"{k}: {v}")
-        meta_lines.append("---\n")
+        meta_lines.append("---\n\n") # Двойной перенос жестко фиксирует пустую строку
         final_md_content = "\n".join(meta_lines) + updated_body_text
 
-        # Перезаписываем .md файл прямо в _input с новыми ссылками .webp перед переносом
+        # Перезаписываем .md файл прямо в _input
         with open(md_path, "w", encoding="utf-8") as f:
             f.write(final_md_content)
 
@@ -208,10 +193,11 @@ def analyze_and_process_media():
             shutil.move(old_file_path, new_file_path)
             print(f"[АНАЛИЗАТОР] Перемещаем медиафайл комплекта '{md_name}': {file_name}")
 
-        # Перемещаем сам манифест .md в папку Выхода
-        new_md_path = os.path.join(output_dir, md_name)
+        # Перемещаем сам манифест .md в папку Выхода под новым стандартным именем CMS
+        final_md_name = f"{base_filename}.md"
+        new_md_path = os.path.join(output_dir, final_md_name)
         shutil.move(md_path, new_md_path)
-        print(f"[АНАЛИЗАТОР] Манифест {md_name} перемещен в _output.")
+        print(f"[АНАЛИЗАТОР] Стандартизированный манифест {final_md_name} перемещен в _output.")
 
         # РЕАЛЬНЫЙ ПРОЦЕСС №4: ОФИЦИАЛЬНАЯ ФИКСАЦИЯ СТАТУСА УСПЕХА В GITHUB_ENV
         status = f"SUCCESS_{teacher}"
