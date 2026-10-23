@@ -145,7 +145,7 @@ def analyze_and_process_media():
 
         for file_name in attachments:
             old_path = os.path.join(input_dir, file_name)
-            base_ext = os.path.splitext(file_name).lower()
+            base_ext = os.path.splitext(file_name)[1].lower()
             clean_name = os.path.splitext(file_name)[0]
             
             # --- БЛОК ОБРАБОТКИ ГРАФИКИ ---
