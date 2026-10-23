@@ -144,8 +144,9 @@ def main():
             sys.exit(1)
 
         # Пересчитываем комплектность, чтобы получить уже новые (.webp) имена файлов для загрузки
-        _, final_media_list = media_compressor.re.findall(r'!\[\[(.*?)\]\]', body), media_compressor.re.findall(r'!\[.*?\]\((.*?)\)', body)
-        final_media_list = list(set(final_media_list[0] + final_media_list[1]))
+        obs_links = re.findall(r'!\[\[(.*?)\]\]', body)
+        md_links = re.findall(r'!\[.*?\]\((.*?)\)', body)
+        final_media_list = list(set(obs_links + md_links))
         final_media_list = [f for f in final_media_list if not f.startswith('http')]
 
         # ПООЧЕРЕДНАЯ ЗАГРУЗКА МЕДИАФАЙЛОВ В ОБЛАКО GITHUB
