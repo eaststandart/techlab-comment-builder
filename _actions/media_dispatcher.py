@@ -14,6 +14,7 @@ import sys
 import yaml
 import shutil
 from datetime import datetime, timedelta
+import media_compressor
 
 def parse_front_matter(file_content):
     """Парсит YAML Front Matter из начала markdown-файла."""
@@ -133,9 +134,15 @@ def main():
             print(f"            • Режим: ПУБЛИКАЦИЯ нового комментария")
         print(f"            • Количество медиа в пакете: {len(required_media)} шт.")
 
-        # На следующих шагах здесь будет вызываться реальный модуль сжатия и публикации через GitHub CLI.
-        # Сейчас мы моделируем финальный этап — формирование правильного имени и перенос в архив.
-        print("[ДИСПЕТЧЕР] Запуск симуляции этапа архивации...")
+        # ЗАПУСК МОДУЛЯ СЖАТИЯ: Пережимаем графику в WebP и обновляем текст манифеста
+        try:
+            body = media_compressor.process_markdown_attachments(body, input_dir)
+            print("[ДИСПЕТЧЕР] ✅ Все локальные медиафайлы успешно оптимизированы конвейером.")
+        except Exception as e_comp:
+            print(f"[ДИСПЕТЧЕР] ❌ Критическая ошибка при работе компрессора: {str(e_comp)}")
+            sys.exit(1)
+
+        print("[ДИСПЕТЧЕР] Запуск этапа архивации...")
 
         # 4. Формирование детерминированного имени файла по вашему стандарту
         clean_date = target_date if target_date else today_str
