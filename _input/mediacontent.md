@@ -3,7 +3,7 @@ publish_as_bot: true
 discussion_number: 83
 discussion_comment: 1867726
 date: 2026-10-23
-published: false
+published: true
 teacher: TechLab
 ---
 
