@@ -27,7 +27,7 @@ def compress_video_to_webm(source_path, target_path):
     # Базовые параметры геометрии, цвета и звука (720x480, Vorbis Mono 96k)
     # Добавлен принудительный pix_fmt yuv420p для устранения ошибки совместимости профилей
     geo_audio_opts = [
-        "-vf", "scale=w=720:h=480:force_original_aspect_ratio=decrease:force_divisible_by=2",
+        "-vf", "scale='if(gte(iw,ih),720,-1)':'if(gte(iw,ih),-1,720)',scale=trunc(iw/2)*2:trunc(ih/2)*2",
         "-pix_fmt", "yuv420p",
         "-r", "30",
         "-c:a", "libvorbis",
