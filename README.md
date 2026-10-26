@@ -1,4 +1,4 @@
-# techlab-media-content
+# techlab-media-content+
 
 # 🗺️ Дорожная карта проекта: Мультиканальный медиа-шлюз (TechLab Media Content)
 
