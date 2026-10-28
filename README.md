@@ -1,4 +1,4 @@
-# techlab-media-content
+# techLab-comment-builder
 
 # 🗺️ Дорожная карта проекта: Конструктор комментариев (TechLab Comment Builder)
 
