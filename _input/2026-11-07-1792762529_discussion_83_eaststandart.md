@@ -5,7 +5,7 @@ discussion_comment: 1867726
 date: 2026-11-07
 timestamp: 1792762529
 published: false
-title: Сборка каркаса корабля
+title: Сборка каркаса кора бля
 teacher: eaststandart
 ---
 
