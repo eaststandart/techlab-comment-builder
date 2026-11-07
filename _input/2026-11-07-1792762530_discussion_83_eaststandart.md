@@ -2,7 +2,7 @@
 publish_as_bot: true
 discussion_number: 83
 discussion_comment: 1867726
-date: 2026-11-07
+date: 2026-11-05
 timestamp: 1792762530
 published: false
 title: Сборка каркаса корабля
