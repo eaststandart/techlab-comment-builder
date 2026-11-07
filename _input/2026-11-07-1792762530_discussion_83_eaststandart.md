@@ -3,7 +3,7 @@ publish_as_bot: true
 discussion_number: 83
 discussion_comment: 1867726
 date: 2026-11-06
-timestamp: 1792762529
+timestamp: 1792762530
 published: false
 title: Сборка каркаса корабля
 teacher: eaststandart
