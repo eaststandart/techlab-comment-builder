@@ -3,14 +3,14 @@ publish_as_bot: true
 discussion_number: 2
 date: 2026-11-08
 timestamp: 1794139656
-published: true
+published: false
 title: "Тест медиа"
 teacher: "eaststandart"
 ---
 
 ## Тест медиа
 
-Описание теста
+Описание теста 1
 
 ### Фотоматериалы <!-- [блок фото] -->
 
