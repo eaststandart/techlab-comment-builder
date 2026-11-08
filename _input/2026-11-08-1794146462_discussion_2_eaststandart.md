@@ -3,7 +3,7 @@ publish_as_bot: true
 discussion_number: 2
 date: 2026-11-08
 timestamp: 1794146462
-published: true
+published: false
 title: "Тест сохранения черновика"
 teacher: "eaststandart"
 ---
@@ -14,7 +14,11 @@ teacher: "eaststandart"
 
 ### Фотоматериалы <!-- [блок фото] -->
 
-![[2026-11-08-1794146462_discussion_2_eaststandart_photo_01.png]]
+![[2026-11-08-1794146462_discussion_2_eaststandart_photo_01.jpg]]
+
+### Фотоматериалы <!-- [блок фото] -->
+
+![[2026-11-08-1794146462_discussion_2_eaststandart_photo_02.png]]
 
 ### Видеоматериалы <!-- [блок видео] -->
 
