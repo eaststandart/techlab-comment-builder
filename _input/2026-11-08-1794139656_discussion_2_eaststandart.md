@@ -13,5 +13,3 @@ teacher: "eaststandart"
 Описание теста 1
 
 ### Видеоматериалы <!-- [блок видео] -->
-
-![[2026-11-08-1794139656_discussion_2_eaststandart_video_01.mp4]]
