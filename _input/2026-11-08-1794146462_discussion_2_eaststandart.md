@@ -16,10 +16,6 @@ teacher: "eaststandart"
 
 ![[2026-11-08-1794146462_discussion_2_eaststandart_photo_01.jpg]]
 
-### Фотоматериалы <!-- [блок фото] -->
-
-![[2026-11-08-1794146462_discussion_2_eaststandart_photo_02.png]]
-
 ### Видеоматериалы <!-- [блок видео] -->
 
 Описание видео
