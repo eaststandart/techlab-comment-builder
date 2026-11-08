@@ -12,10 +12,6 @@ teacher: "eaststandart"
 
 Описание теста
 
-### Фотоматериалы <!-- [блок фото] -->
-
-![[2026-11-08-1794139656_discussion_2_eaststandart_photo_01.jpg]]
-
 ### Видеоматериалы <!-- [блок видео] -->
 
 ![[2026-11-08-1794139656_discussion_2_eaststandart_video_01.mp4]]
