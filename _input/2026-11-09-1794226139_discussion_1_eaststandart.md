@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 1
 date: 2026-11-09
-timestamp: 1794227376
+timestamp: 1794227519
 published: false
 title: "1"
 teacher: "eaststandart"
@@ -25,3 +25,5 @@ teacher: "eaststandart"
 ### Медиафайлы
 
 ![[2026-11-09-1794226139_discussion_1_eaststandart_video_02.mp4]]
+
+![[2026-11-09-1794226139_discussion_1_eaststandart_video_03.mp4]]
