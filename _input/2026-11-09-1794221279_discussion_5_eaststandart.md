@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 5
 date: 2026-11-09
-timestamp: 1794225729
+timestamp: 1794225777
 published: false
 title: "Тест 5"
 teacher: "eaststandart"
@@ -26,4 +26,4 @@ teacher: "eaststandart"
 
 ![[2026-11-09-1794221279_discussion_5_eaststandart_video_02.mp4]]
 
-![[2026-11-09-1794221279_discussion_5_eaststandart_video_03.mp4]]
+![[2026-11-09-1794221279_discussion_5_eaststandart_video_04.mp4]]
