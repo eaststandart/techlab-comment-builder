@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 4
 date: 2026-11-10
-timestamp: 1794235772
+timestamp: 1794236458
 published: false
 title: "4"
 teacher: "eaststandart"
@@ -23,6 +23,10 @@ teacher: "eaststandart"
 ![[2026-11-10-1794235736_discussion_4_eaststandart_photo_01.jpg]]
 
 ## 📸 Фотоматериалы
+
+### Заголовок блока
+
+Заголовок фото
 
 ### Медиафайлы
 
