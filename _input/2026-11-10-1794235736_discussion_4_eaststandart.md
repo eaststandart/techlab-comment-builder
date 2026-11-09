@@ -1,8 +1,8 @@
 ---
-publish_as_bot: false
+publish_as_bot: true
 discussion_number: 4
 date: 2026-11-10
-timestamp: 1794237184
+timestamp: 1794237337
 published: false
 title: "4"
 teacher: "eaststandart"
