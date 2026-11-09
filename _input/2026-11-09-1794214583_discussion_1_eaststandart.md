@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 1
 date: 2026-11-09
-timestamp: 1794215082
+timestamp: 1794215726
 published: false
 title: "Тест 2"
 teacher: "eaststandart"
@@ -25,6 +25,10 @@ teacher: "eaststandart"
 Тест 2 подвал
 
 ## 🎥 Видеоматериалы
+
+### Заголовок блока
+
+Медиафайлы
 
 ### Медиафайлы
 
