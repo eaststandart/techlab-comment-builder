@@ -2,7 +2,7 @@
 publish_as_bot: true
 discussion_number: 999
 date: 2026-11-09
-timestamp: 1794204008
+timestamp: 1794204019
 published: true
 title: "ТЕСТ дозагрузки медиа"
 teacher: "eaststandart"
@@ -46,4 +46,4 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[2026-11-09-1794199999_discussion_999_eaststandart_video_01.mp4]]
+![[2026-11-09-1794199999_discussion_999_eaststandart_video_02.mp4]]
