@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 4
 date: 2026-11-10
-timestamp: 1794236458
+timestamp: 1794236594
 published: false
 title: "4"
 teacher: "eaststandart"
@@ -15,6 +15,10 @@ teacher: "eaststandart"
 ### Заголовок комментария
 
 4
+
+### Основной текст
+
+Проверка основного текста
 
 ## 📸 Фотоматериалы
 
