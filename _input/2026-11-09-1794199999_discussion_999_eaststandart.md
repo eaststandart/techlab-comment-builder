@@ -2,8 +2,8 @@
 publish_as_bot: true
 discussion_number: 999
 date: 2026-11-09
-timestamp: 1794200435
-published: false
+timestamp: 1794200599
+published: true
 title: "ТЕСТ дозагрузки медиа"
 teacher: "eaststandart"
 ---
