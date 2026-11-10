@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794354012
+timestamp: 1794354013
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -115,6 +115,8 @@ teacher: "eaststandart"
 ![VID_test1.mp4 | video_02.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_02.mp4)
 
 ![VID_test2.mp4 | video_03.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_03.mp4)
+
+![VID_test1.mp4 | video_04.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_04.mp4)
 
 ## 🎥 Видеоматериалы
 
