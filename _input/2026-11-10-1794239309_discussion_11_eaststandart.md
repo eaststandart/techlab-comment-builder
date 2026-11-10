@@ -36,7 +36,7 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg]]
+![2026-11-10_photo_01.jpg](2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg)
 
 ## 🎥 Видеоматериалы
 
@@ -50,6 +50,6 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[2026-11-10-1794239309_discussion_11_eaststandart_video_01.mp4]]
+[2026-11-10_video_01.mp4](2026-11-10-1794239309_discussion_11_eaststandart_video_01.mp4)
 
 ![[2026-11-10-1794239309_discussion_11_eaststandart_video_02.webm]]
