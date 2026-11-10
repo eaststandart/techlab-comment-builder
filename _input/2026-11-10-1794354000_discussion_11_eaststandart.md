@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794354024
+timestamp: 1794354025
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -58,11 +58,11 @@ teacher: "eaststandart"
 
 ![IMG_JPG_test1.jpg | photo_02.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_02.jpg)
 
-![IMG_JPG_test1.jpg | photo_03.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_03.jpg)
-
 ![IMG_test2.jpg | photo_04.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_04.jpg)
 
 ![IMG_test2.jpg | photo_06.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_06.jpg)
+
+![avtomobil-s-polnym-privodom-iz-kartona-02.webp | photo_09.webp](2026-11-10-1794354000_discussion_11_eaststandart_photo_09.webp)
 
 ## 📸 Фотоматериалы
 
@@ -124,10 +124,6 @@ teacher: "eaststandart"
 
 ![VID_test1.mp4 | video_04.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_04.mp4)
 
-![VID_test1.mp4 | video_05.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_05.mp4)
-
-![VID_test1.mp4 | video_06.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_06.mp4)
-
 ![VID_test2.mp4 | video_07.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_07.mp4)
 
 ![VID_test1.mp4 | video_08.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_08.mp4)
@@ -154,6 +150,6 @@ teacher: "eaststandart"
 
 ![VID_test1.mp4 | video_09.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_09.mp4)
 
-![VID_test1.mp4 | video_10.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_10.mp4)
-
 ![VID_test2.mp4 | video_11.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_11.mp4)
+
+![muzykalnyj-karandash-01.webm | video_12.webm](2026-11-10-1794354000_discussion_11_eaststandart_video_12.webm)
