@@ -37,6 +37,7 @@ teacher: "eaststandart"
 ![IMG_JPG_test1.jpg | photo_01.jpg](IMG_JPG_test1.jpg)
 [IMG_JPG_test1.jpg | photo_01.jpg](IMG_JPG_test1.jpg)
 [Markdown angle URL](<IMG_JPG_test1.jpg>)
+[[2026-11-10-1794354000_discussion_11_eaststandart_photo_01.jpg|Тест физического имени photo_01]]
 
 ## 📸 Фотоматериалы
 
