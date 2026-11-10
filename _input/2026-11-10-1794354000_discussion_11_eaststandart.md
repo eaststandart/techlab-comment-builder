@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794354002
+timestamp: 1794354003
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -55,6 +55,8 @@ teacher: "eaststandart"
 [Markdown angle URL](IMG_JPG_test1.jpg)
 
 [IMG_JPG_test1.jpg | photo_01.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_01.jpg)
+
+![IMG_JPG_test1.jpg | photo_02.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_02.jpg)
 
 ## 📸 Фотоматериалы
 
