@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794354018
+timestamp: 1794354019
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -59,6 +59,10 @@ teacher: "eaststandart"
 ![IMG_JPG_test1.jpg | photo_02.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_02.jpg)
 
 ![IMG_JPG_test1.jpg | photo_03.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_03.jpg)
+
+![IMG_test2.jpg | photo_04.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_04.jpg)
+
+![IMG_test2.jpg | photo_06.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_06.jpg)
 
 ## 📸 Фотоматериалы
 
@@ -145,3 +149,5 @@ teacher: "eaststandart"
 ![Тестовое видео](VID_test2.mp4)
 
 [MediaWiki | muzykalnyj-karandash-01.webm](muzykalnyj-karandash-01.webm)
+
+![VID_test1.mp4 | video_09.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_09.mp4)
