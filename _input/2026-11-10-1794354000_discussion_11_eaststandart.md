@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794354022
+timestamp: 1794354023
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -85,8 +85,6 @@ teacher: "eaststandart"
 [WebP — изображение автомобиля](avtomobil-s-polnym-privodom-iz-kartona-02.webp)
 
 ![IMG_JPG_test1.jpg | photo_08.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_08.jpg)
-
-![IMG_test2.jpg | photo_09.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_09.jpg)
 
 ## 🎥 Видеоматериалы
 
