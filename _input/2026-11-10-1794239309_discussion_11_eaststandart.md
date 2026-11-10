@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794273956
+timestamp: 1794281443
 published: false
 title: "Тест с телефона"
 teacher: "eaststandart"
@@ -36,7 +36,7 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg]]
+![2026-11-10_photo_01.jpg](2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg)
 
 ![2026-11-10_photo_01.jpg](2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg)
 
@@ -52,6 +52,6 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[2026-11-10-1794239309_discussion_11_eaststandart_video_02.webm]]
+[2026-11-10_video_02.webm](2026-11-10-1794239309_discussion_11_eaststandart_video_02.webm)
 
 [2026-11-10_video_01.mp4](2026-11-10-1794239309_discussion_11_eaststandart_video_01.mp4)
