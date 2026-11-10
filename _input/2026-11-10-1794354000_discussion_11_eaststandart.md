@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794354020
+timestamp: 1794354021
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -84,6 +84,10 @@ teacher: "eaststandart"
 
 [WebP — изображение автомобиля](avtomobil-s-polnym-privodom-iz-kartona-02.webp)
 
+![IMG_JPG_test1.jpg | photo_08.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_08.jpg)
+
+![IMG_test2.jpg | photo_09.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_09.jpg)
+
 ## 🎥 Видеоматериалы
 
 ### Заголовок блока
@@ -151,3 +155,7 @@ teacher: "eaststandart"
 [MediaWiki | muzykalnyj-karandash-01.webm](muzykalnyj-karandash-01.webm)
 
 ![VID_test1.mp4 | video_09.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_09.mp4)
+
+![VID_test1.mp4 | video_10.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_10.mp4)
+
+![VID_test2.mp4 | video_11.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_11.mp4)
