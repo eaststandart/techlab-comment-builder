@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794297204
+timestamp: 1794304851
 published: false
 title: "Тест смешанных ссылок"
 teacher: "eaststandart"
@@ -36,9 +36,9 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg]]
+![photo_01.jpg](2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg)
 
-[[2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg]]
+[photo_01.jpg](2026-11-10-1794239309_discussion_11_eaststandart_photo_01.jpg)
 
 ## 📸 Фотоматериалы
 
@@ -88,9 +88,9 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[2026-11-10-1794239309_discussion_11_eaststandart_video_01.mp4]]
+![video_01.mp4](2026-11-10-1794239309_discussion_11_eaststandart_video_01.mp4)
 
-[[2026-11-10-1794239309_discussion_11_eaststandart_video_01.mp4]]
+[video_01.mp4](2026-11-10-1794239309_discussion_11_eaststandart_video_01.mp4)
 
 ## 🎥 Видеоматериалы
 
