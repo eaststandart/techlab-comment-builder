@@ -2,13 +2,13 @@
 publish_as_bot: false
 discussion_number: 1
 date: 2026-11-11
-timestamp: 1794385036
-published: false
+timestamp: 1794386272
+published: true
 title: "Тест 2"
 teacher: "eaststandart"
 ---
 
-# Черновик комментария
+# Комментарий для публикации
 
 ## Структура комментария
 
