@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794385271
+timestamp: 1794385278
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -82,7 +82,7 @@ teacher: "eaststandart"
 
 ![Скан PNG/JPG](Scan2.JPG)
 
-![avtomobil-s-polnym-privodom-iz-kartona-02.webp | photo_14.webp](avtomobil-s-polnym-privodom-iz-kartona-02.webp)
+[avtomobil-s-polnym-privodom-iz-kartona-02.webp | photo_14.webp](2026-11-10-1794354000_discussion_11_eaststandart_photo_14.webp)
 
 ![IMG_JPG_test1.jpg | photo_08.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_08.jpg)
 
