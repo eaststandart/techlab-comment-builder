@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 11
 date: 2026-11-10
-timestamp: 1794376504
+timestamp: 1794376760
 published: false
 title: "Тест ссылок на фото и видео"
 teacher: "eaststandart"
@@ -90,6 +90,10 @@ teacher: "eaststandart"
 
 ![IMG_JPG_test1.jpg | photo_11.jpg](2026-11-10-1794354000_discussion_11_eaststandart_photo_11.jpg)
 
+![avtomobil-s-polnym-privodom-iz-kartona-02.webp | photo_12.webp](2026-11-10-1794354000_discussion_11_eaststandart_photo_12.webp)
+
+![IMG_PNG_test1.png | photo_13.png](2026-11-10-1794354000_discussion_11_eaststandart_photo_13.png)
+
 ## 🎥 Видеоматериалы
 
 ### Заголовок блока
@@ -159,3 +163,7 @@ teacher: "eaststandart"
 ![muzykalnyj-karandash-01.webm | video_12.webm](2026-11-10-1794354000_discussion_11_eaststandart_video_12.webm)
 
 ![VID_test2.mp4 | video_13.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_13.mp4)
+
+![muzykalnyj-karandash-01.webm | video_14.webm](2026-11-10-1794354000_discussion_11_eaststandart_video_14.webm)
+
+![VID_test2.mp4 | video_15.mp4](2026-11-10-1794354000_discussion_11_eaststandart_video_15.mp4)
