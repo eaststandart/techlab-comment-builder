@@ -2,8 +2,8 @@
 publish_as_bot: false
 discussion_number: 1
 date: 2026-11-11
-timestamp: 1794398501
-published: false
+timestamp: 1794399392
+published: delete
 title: "Тест 4"
 teacher: "eaststandart"
 ---
