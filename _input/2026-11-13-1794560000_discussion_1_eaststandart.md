@@ -20,4 +20,4 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![Scan2.JPG](Scan2.JPG)
+![Scan2.JPG | photo_01.jpg](2026-11-13-1794560000_discussion_1_eaststandart_photo_01.jpg)
