@@ -1,8 +1,8 @@
 ---
 publish_as_bot: false
 discussion_number: 1
-date: 2026-11-13
-timestamp: 1794560005
+date: 2026-11-17
+timestamp: 1794560006
 published: false
 title: "Тест отсутствующего файла Scan2.JPG"
 teacher: "eaststandart"
