@@ -2,7 +2,7 @@
 publish_as_bot: false
 discussion_number: 1
 date: 2026-11-12
-timestamp: 1794491186
+timestamp: 1794491226
 published: false
 title: "Повторное сохранение ранее загруженного черновика."
 teacher: "eaststandart"
@@ -21,6 +21,8 @@ teacher: "eaststandart"
 ### Медиафайлы
 
 ![IMG_JPG_test1.jpg | photo_01.jpg](2026-11-12-1794491175_discussion_1_eaststandart_photo_01.jpg)
+
+![IMG_test2.jpg | photo_02.jpg](2026-11-12-1794491175_discussion_1_eaststandart_photo_02.jpg)
 
 ## 🎥 Видеоматериалы
 
