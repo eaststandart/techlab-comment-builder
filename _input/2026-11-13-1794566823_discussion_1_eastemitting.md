@@ -1,8 +1,9 @@
 ---
 publish_as_bot: false
 discussion_number: 1
+discussion_comment: 12345678
 date: 2026-11-13
-timestamp: 1794566992
+timestamp: 1794567040
 published: false
 title: "Вход от eastemitting"
 teacher: "eastemitting"
