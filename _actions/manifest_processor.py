@@ -63,7 +63,7 @@ def read_manifest(path):
         return "invalid", extract_attachments(content), "Front Matter отсутствует или повреждён"
 
     published_values = re.findall(
-        r"^\\s*published\\s*:\\s*(.*?)\\s*$",
+        r"^\s*published\s*:\s*(.*?)\s*$",
         match.group(1),
         re.IGNORECASE | re.MULTILINE,
     )
