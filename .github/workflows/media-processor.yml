@@ -46,4 +46,4 @@ jobs:
       - name: Run Smart Media Bundle Dispatcher
         env:
           MY_FINE_TOKEN: ${{ secrets.MY_FINE_TOKEN }}
-        run: python _actions/media_dispatcher.py
+        run: python _actions/comment_dispatcher.py
