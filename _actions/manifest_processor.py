@@ -180,7 +180,7 @@ def process_manifests():
                 return f"некорректный манифест: {data['reason']}"
 
         if manifests:
-            return "отсутствует ссылка в манифесте"
+            return "файл не привязан к манифесту"
         return "отсутствует манифест"
 
     deleted = 0
