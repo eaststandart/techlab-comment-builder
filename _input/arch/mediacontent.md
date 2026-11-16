@@ -1,14 +1,40 @@
 ---
-publish_as_bot: true
+publish_as_bot: false
 discussion_number: 83
 discussion_comment: 1867726
-date: 2026-10-23
-published: true
-preprocess: false
+date: 2026-11-16
+published: false
+title:
 teacher: TechLab
 ---
 
-### 🚀 Проверка медиа-конвейера
-Тестируем автоматическую отправку фото из Obsidian.
+# Черновик комментария
 
-![[mediacontent-1792722368803-2026-10-23.webp]]
+## Структура комментария
+
+### Заголовок комментария
+
+Тест удаления
+
+### Основной текст
+
+Описание тест
+
+### Подвал комментария
+
+Подвал теста
+
+## 📸 Фотоматериалы
+
+### Заголовок блока
+
+Фото для теста
+
+### Описание блока
+
+Описание фото
+
+### Медиафайлы
+
+![IMG_JPG_test1.jpg | photo_01.jpg](2026-11-16-1794836938_discussion_1_eaststandart_photo_01.jpg)
+
