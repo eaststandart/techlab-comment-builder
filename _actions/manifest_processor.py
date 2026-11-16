@@ -56,29 +56,25 @@ def read_manifest(path):
         with open(path, "r", encoding="utf-8") as file:
             content = file.read()
     except Exception as error:
-        print(f"[МАНИФЕСТЫ] Ошибка чтения '{os.path.basename(path)}': {error}")
-        return "invalid", set()
+        return "invalid", set(), f"ошибка чтения: {error}"
 
     match = FRONT_MATTER_RE.match(content)
     if not match:
-        print(f"[МАНИФЕСТЫ] '{os.path.basename(path)}': Front Matter отсутствует или повреждён.")
-        return "invalid", extract_attachments(content)
+        return "invalid", extract_attachments(content), "Front Matter отсутствует или повреждён"
 
     published_values = re.findall(
-        r"^\s*published\s*:\s*(.*?)\s*$",
+        r"^\\s*published\\s*:\\s*(.*?)\\s*$",
         match.group(1),
         re.IGNORECASE | re.MULTILINE,
     )
     if len(published_values) != 1:
-        print(f"[МАНИФЕСТЫ] '{os.path.basename(path)}': свойство published отсутствует или задано неоднозначно.")
-        return "invalid", extract_attachments(content[match.end():])
+        return "invalid", extract_attachments(content[match.end():]), "свойство published отсутствует или задано неоднозначно"
 
-    value = published_values[0].strip().strip("\"'").lower()
+    value = published_values[0].strip().strip("\\\"'").lower()
     if value not in ("true", "false", "delete"):
-        print(f"[МАНИФЕСТЫ] '{os.path.basename(path)}': недопустимое значение published: {value!r}.")
-        return "invalid", extract_attachments(content[match.end():])
+        return "invalid", extract_attachments(content[match.end():]), f"недопустимое значение published: {value!r}"
 
-    return value, extract_attachments(content[match.end():])
+    return value, extract_attachments(content[match.end():]), None
 
 
 def standard_bundle_files(manifest_name, input_files):
@@ -93,7 +89,7 @@ def process_manifests():
     print("\n=== [МОДУЛЬ MANIFEST-PROCESSOR] ОБРАБОТКА _INPUT ===")
 
     if not os.path.isdir(INPUT_DIR):
-        print(f"[МАНИФЕСТЫ] Ошибка: каталог не найден: {INPUT_DIR}")
+        print(f"[МАНИФЕСТ] Ошибка: каталог не найден: {INPUT_DIR}")
         return 1
 
     input_files = {
@@ -106,13 +102,27 @@ def process_manifests():
 
     manifests = {}
     for name in manifest_names:
-        status, attachments = read_manifest(os.path.join(INPUT_DIR, name))
+        status, attachments, reason = read_manifest(os.path.join(INPUT_DIR, name))
         manifests[name] = {
             "status": status,
+            "reason": reason,
             "attachments": attachments,
             "standard_files": standard_bundle_files(name, input_files),
             "standard": bool(STANDARD_MANIFEST_RE.match(name)),
         }
+
+    # Выводим решение по каждому найденному манифесту.
+    for name, data in manifests.items():
+        status = data["status"]
+        if status == "true":
+            print(f"[МАНИФЕСТ] Найден: {name} | published=true  | передать manifest-analyzer.py")
+        elif status == "false":
+            print(f"[МАНИФЕСТ] Найден: {name} | published=false | пропустить черновик")
+        elif status == "delete":
+            print(f"[МАНИФЕСТ] Найден: {name} | published=delete | удалить с вложениями")
+        else:
+            print(f"[МАНИФЕСТ] Найден: {name} | published=некорректно | удалить с вложениями")
+            print(f"[МАНИФЕСТ] Причина удаления: {data['reason']}")
 
     # Сначала определяем все файлы, на которые ссылаются сохраняемые манифесты.
     keep_files = set()
@@ -157,9 +167,9 @@ def process_manifests():
         try:
             os.remove(path)
             deleted += 1
-            print(f"[МАНИФЕСТЫ] Удалён файл: {name}")
+            print(f"[МАНИФЕСТ] Удалён файл: {name}")
         except Exception as error:
-            print(f"[МАНИФЕСТЫ] Критическая ошибка удаления '{name}': {error}")
+            print(f"[МАНИФЕСТ] Критическая ошибка удаления '{name}': {error}")
             return 1
 
     kept_drafts = sum(1 for data in manifests.values() if data["status"] == "false")
@@ -167,13 +177,13 @@ def process_manifests():
     removed_manifests = len(delete_manifests)
 
     print(
-        "[МАНИФЕСТЫ] Итог: "
+        "[МАНИФЕСТ] Итог: "
         f"готовых манифестов={ready_manifests}, "
         f"черновиков={kept_drafts}, "
         f"удалённых/некорректных манифестов={removed_manifests}, "
         f"удалённых файлов={deleted}."
     )
-    print("[МАНИФЕСТЫ] Предварительная обработка завершена.")
+    print("[МАНИФЕСТ] Предварительная обработка завершена.")
     return 0
 
 
