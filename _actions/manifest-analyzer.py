@@ -105,16 +105,34 @@ def analyze_and_process_media():
             print(f"[АНАЛИЗАТОР] ⚠️ Манифест '{md_name}' пропущен: неверный формат даты '{date_str}'.")
             continue
 
-        # 3. Сбор списка упомянутых вложений регулярными выражениями
-        raw_attachments = []
-        raw_attachments.extend(re.findall(r"!\[\[(.*?)\]\]", body_text))
-        raw_attachments.extend(re.findall(r"!\[.*?\]\((.*?)\)", body_text))
+        # 3. Сбор вложений из WikiLinks и Markdown-ссылок.
+        # Учитываются как встроенные медиа, так и обычные текстовые ссылки.
+        # Порядок ссылок сохраняется для последовательной нумерации файлов.
+        wiki_link_re = re.compile(r"!?\\[\\[(.*?)\\]\\]")
+        markdown_link_re = re.compile(r"!?\\[[^\\]]*\\]\\(([^)]+)\\)")
+        link_matches = []
+        for pattern in (wiki_link_re, markdown_link_re):
+            link_matches.extend(pattern.finditer(body_text))
+        link_matches.sort(key=lambda match: match.start())
 
-        # Надежная очистка имен от пробелов и обрезка якорей Obsidian (|300)
+        from urllib.parse import unquote
+
         attachments = []
-        for att in raw_attachments:
-            clean_att = att.strip().split("|")[0].strip()
-            clean_att = os.path.basename(clean_att)
+        for match in link_matches:
+            clean_att = match.group(1).strip()
+            if clean_att.startswith("<") and clean_att.endswith(">"):
+                clean_att = clean_att[1:-1].strip()
+            clean_att = clean_att.split("|", 1)[0].strip()
+            clean_att = clean_att.split("#", 1)[0].strip()
+            clean_att = clean_att.split("?", 1)[0].strip()
+            if not clean_att or re.match(
+                r"^[a-z][a-z0-9+.-]*://", clean_att, re.IGNORECASE
+            ):
+                continue
+
+            clean_att = os.path.basename(
+                unquote(clean_att.replace("\\", "/"))
+            )
             if clean_att and clean_att not in attachments:
                 attachments.append(clean_att)
 
