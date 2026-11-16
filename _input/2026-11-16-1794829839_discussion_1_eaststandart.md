@@ -2,8 +2,8 @@
 publish_as_bot: false
 discussion_number: 1
 date: 2026-11-18
-timestamp: 1794830308
-published: false
+timestamp: 1794833653
+published: delete
 title: ""
 teacher: "eaststandart"
 ---
