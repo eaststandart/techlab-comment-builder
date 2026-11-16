@@ -36,5 +36,4 @@ teacher: TechLab
 
 ### Медиафайлы
 
-![IMG_JPG_test1.jpg | photo_01.jpg](2026-11-16-1794836938_discussion_1_eaststandart_photo_01.jpg)
-
+![[IMG_JPG_test1.jpg]]
