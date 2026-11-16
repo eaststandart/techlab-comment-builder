@@ -36,3 +36,4 @@ teacher: TechLab
 
 ### Медиафайлы
 
+![[IMG_JPG_test1.jpg]]
