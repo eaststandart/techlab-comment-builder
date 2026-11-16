@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 # Подключаем оба наших компрессора и модуль стандартизации имен
 from media_compressor_photo import compress_image_to_webp
 from media_compressor_video import compress_video_to_webm
-from media_renamer import standardize_bundle_names
+from comment_renamer import standardize_bundle_names
 
 def get_vladivostok_date():
     """
