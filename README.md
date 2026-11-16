@@ -23,7 +23,7 @@
 ```text
 [techlab-media-content]
 ├── 📂 .github/workflows/       # Конвейеры автоматизации (GitHub Actions)
-│   └── media-processor.yml     # Главный триггер серверной обработки пакетов
+│   └── comment-processor.yml     # Главный триггер серверной обработки пакетов
 ├── 📂 _actions/                # Серверная логика на языке Python
 │   ├── comment_dispatcher.py     # Центральный диспетчер очереди пакетов
 │   ├── media_compressor.py     # Модуль валидации, сжатия графики и видео
@@ -102,7 +102,7 @@ teacher: "TechLab"         # Подпись автора
 *   [x] **Шаг 5:** Контрольный тест ручной отправки пакета из Obsidian в облако.
 *   [ ] **Шаг 6 (СЛЕДУЮЩИЙ):** Написание центрального Python-диспетчера `comment_dispatcher.py` для сканирования и проверки команд.
 *   [ ] **Шаг 7:** Реализация модуля сжатия `media_compressor.py` (Pillow/WebP).
-*   [ ] **Шаг 8:** Настройка конвейера GitHub Actions (`media-processor.yml`) и интеграция с GitHub CLI (`gh`).
+*   [ ] **Шаг 8:** Настройка конвейера GitHub Actions (`comment-processor.yml`) и интеграция с GitHub CLI (`gh`).
 *   [ ] **Шаг 9:** Разработка веб-формы загрузки медиа на фронтенде сайта Лаборатории.
 
 ======
