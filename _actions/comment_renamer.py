@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@module  media_renamer.py
+@module  comment_renamer.py
 @about   Выделенный модуль стандартизации имен файлов по правилам CMS.
 @purpose Расчет базового префикса, ведение двузначных счетчиков и переименование файлов в _input до сжатия.
 @author  TechLab

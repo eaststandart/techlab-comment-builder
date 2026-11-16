@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@module  media-analyzer.py
+@module  manifest-analyzer.py
 @about   Модуль проверки комплектности и оптимизации медиа-пакетов.
 @purpose Группировка медиа-файлов, сжатие в WebP на месте в _input и чистый перенос в _output.
 @author  TechLab
@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 # Подключаем оба наших компрессора и модуль стандартизации имен
 from media_compressor_photo import compress_image_to_webp
 from media_compressor_video import compress_video_to_webm
-from media_renamer import standardize_bundle_names
+from comment_renamer import standardize_bundle_names
 
 def get_vladivostok_date():
     """
@@ -51,7 +51,7 @@ def parse_front_matter(file_path):
     return None, None
 
 def analyze_and_process_media():
-    print("\n=== [МОДУЛЬ MEDIA-ANALYZER] АНАЛИЗ ПАПКИ _INPUT ===")
+    print("\n=== [МОДУЛЬ MANIFEST-ANALYZER] АНАЛИЗ ПАПКИ _INPUT ===")
 
     input_dir = os.path.join(os.getcwd(), "_input")
     output_dir = os.path.join(os.getcwd(), "_output")

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@module  media_dispatcher.py
-@about   Модуль диспетчера буферного шлюза медиа-пакетов.
-@purpose Циклическая координация анализатора, отправка коммитов, уведомление основного сайта через GitHub API и ожидание очистки шлюза.
+@module  comment_dispatcher.py
+@about   Модуль диспетчера буферного шлюза конструктора комментариев.
+@purpose Циклическая координация предварительной обработки манифестов, анализатора, отправки коммитов, уведомления основного сайта через GitHub API и ожидания очистки шлюза.
 @author  TechLab
 @version 1.0.0
 """
@@ -18,7 +18,7 @@ import subprocess
 # КОНФИГУРАЦИЯ ВНЕШНИХ ИНТЕРНЕТ-АДРЕСОВ GITHUB API
 # ==============================================================================
 SITE_API_URL = "https://api.github.com/repos/eaststandart/eaststandart.github.io/dispatches"
-CHECK_URL = "https://api.github.com/repos/eaststandart/techlab-media-content/contents/_output"
+CHECK_URL = "https://api.github.com/repos/eaststandart/techlab-comment-builder/contents/_output"
 REPOSITORY_BRANCH = "main"
 OUTPUT_CHECK_INTERVAL = 60
 MAX_OUTPUT_WAIT_SECONDS = 3600
@@ -44,6 +44,50 @@ def sync_repository():
         return True
     except Exception as err:
         print(f"[ДИСПЕТЧЕР] Ошибка синхронизации Git: {str(err)}")
+        return False
+
+def commit_and_push_manifest_cleanup():
+    """Сохраняет изменения _input, выполненные предварительной обработкой."""
+    try:
+        run_command(["git", "config", "--global", "user.name", "TechLab Media Bot"])
+        run_command(["git", "config", "--global", "user.email", "media-bot@techlab.local"])
+        run_command(["git", "add", "_input"])
+
+        diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"])
+        if diff_check.returncode == 0:
+            print("[ДИСПЕТЧЕР] Предварительная обработка не изменила _input.")
+            return True
+        if diff_check.returncode != 1:
+            raise RuntimeError("Не удалось проверить изменения Git.")
+
+        run_command(["git", "commit", "-m", "предварительная обработка манифестов _input"])
+        run_command(["git", "fetch", "origin", REPOSITORY_BRANCH])
+        run_command(["git", "pull", "origin", REPOSITORY_BRANCH, "--rebase"])
+        run_command(["git", "push", "origin", REPOSITORY_BRANCH])
+        print("[ДИСПЕТЧЕР] Изменения предварительной обработки сохранены в GitHub.")
+        return True
+    except Exception as err:
+        print(f"[ДИСПЕТЧЕР] Ошибка сохранения предварительной обработки: {str(err)}")
+        return False
+
+def run_manifest_processor():
+    """Запускает предварительную обработку манифестов перед Analyzer."""
+    print("\n[ДИСПЕТЧЕР] Запуск модуля 'manifest_processor.py'...")
+    try:
+        result = subprocess.run(
+            [sys.executable, "_actions/manifest_processor.py"],
+            capture_output=True,
+            text=True
+        )
+        print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
+        if result.returncode != 0:
+            print(f"[ДИСПЕТЧЕР] Manifest Processor завершился с кодом {result.returncode}.")
+            return False
+        return True
+    except Exception as err:
+        print(f"[ДИСПЕТЧЕР] Ошибка запуска Manifest Processor: {str(err)}")
         return False
 
 def commit_and_push_bundle(teacher_login):
@@ -101,7 +145,7 @@ def wait_until_output_empty(fine_token):
         check_counter += 1
         elapsed = int(time.time() - start_time)
         print(f"\n[ДИСПЕТЧЕР] Проверка №{check_counter} (Время: {elapsed} сек.)")
-        print("[ДИСПЕТЧЕР] Делаем запрос к API techlab-media-content для проверки удаления файлов.")
+        print("[ДИСПЕТЧЕР] Делаем запрос к API techlab-comment-builder для проверки удаления файлов.")
 
         if elapsed >= MAX_OUTPUT_WAIT_SECONDS:
             print("[ДИСПЕТЧЕР] Превышено максимальное время ожидания очистки _output.")
@@ -131,10 +175,10 @@ def wait_until_output_empty(fine_token):
 
         time.sleep(OUTPUT_CHECK_INTERVAL)
 
-def run_analyzer():
-    print("\n[ДИСПЕТЧЕР] Запуск модуля 'media-analyzer.py'...")
+def run_manifest_analyzer():
+    print("\n[ДИСПЕТЧЕР] Запуск модуля 'manifest-analyzer.py'...")
     try:
-        result = subprocess.run([sys.executable, "_actions/media-analyzer.py"], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "_actions/manifest-analyzer.py"], capture_output=True, text=True)
         print(result.stdout)
         
         analyzer_status = "NO_BUNDLE_READY"
@@ -144,11 +188,11 @@ def run_analyzer():
 
         return analyzer_status
     except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Ошибка запуска analyzer: {str(err)}")
+        print(f"[ДИСПЕТЧЕР] Ошибка запуска Manifest Analyzer: {str(err)}")
         return "ERROR_ANALYZER"
 
 def run_control_pipeline():
-    print("\n=== [МОДУЛЬ MEDIA-DISPATCHER] ЗАПУСК ДИСПЕТЧЕРА КОНВЕЙЕРА ===")
+    print("\n=== [МОДУЛЬ COMMENT-DISPATCHER] ЗАПУСК ДИСПЕТЧЕРА КОНВЕЙЕРА ===")
     output_dir = os.path.join(os.getcwd(), "_output")
     input_dir = os.path.join(os.getcwd(), "_input")
 
@@ -175,7 +219,13 @@ def run_control_pipeline():
             if not wait_until_output_empty(fine_token) or not sync_repository():
                 return
 
-        analyzer_status = run_analyzer()
+        if not run_manifest_processor():
+            return
+
+        if not commit_and_push_manifest_cleanup():
+            return
+
+        analyzer_status = run_manifest_analyzer()
 
         if analyzer_status in ("NO_BUNDLE_READY", "NO_FILES"):
             print("[ДИСПЕТЧЕР] Готовых комплектов в директории _input не обнаружено. Процесс контроля успешно завершён.")
@@ -187,7 +237,7 @@ def run_control_pipeline():
             continue
 
         if analyzer_status.startswith("ERROR_") or not analyzer_status.startswith("SUCCESS_"):
-            print(f"[ДИСПЕТЧЕР] Ошибка или неизвестный статус analyzer: {analyzer_status}")
+            print(f"[ДИСПЕТЧЕР] Ошибка или неизвестный статус Manifest Analyzer: {analyzer_status}")
             return
 
         teacher_login = analyzer_status.replace("SUCCESS_", "", 1).strip()
