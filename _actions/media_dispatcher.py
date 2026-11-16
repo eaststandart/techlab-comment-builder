@@ -3,7 +3,7 @@
 """
 @module  media_dispatcher.py
 @about   Модуль диспетчера буферного шлюза медиа-пакетов.
-@purpose Циклическая координация анализатора, отправка коммитов, уведомление основного сайта через GitHub API и ожидание очистки шлюза.
+@purpose Циклическая координация предварительной обработки манифестов, анализатора, отправки коммитов, уведомления основного сайта через GitHub API и ожидания очистки шлюза.
 @author  TechLab
 @version 1.0.0
 """
@@ -44,6 +44,50 @@ def sync_repository():
         return True
     except Exception as err:
         print(f"[ДИСПЕТЧЕР] Ошибка синхронизации Git: {str(err)}")
+        return False
+
+def commit_and_push_manifest_cleanup():
+    """Сохраняет изменения _input, выполненные предварительной обработкой."""
+    try:
+        run_command(["git", "config", "--global", "user.name", "TechLab Media Bot"])
+        run_command(["git", "config", "--global", "user.email", "media-bot@techlab.local"])
+        run_command(["git", "add", "_input"])
+
+        diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"])
+        if diff_check.returncode == 0:
+            print("[ДИСПЕТЧЕР] Предварительная обработка не изменила _input.")
+            return True
+        if diff_check.returncode != 1:
+            raise RuntimeError("Не удалось проверить изменения Git.")
+
+        run_command(["git", "commit", "-m", "предварительная обработка манифестов _input"])
+        run_command(["git", "fetch", "origin", REPOSITORY_BRANCH])
+        run_command(["git", "pull", "origin", REPOSITORY_BRANCH, "--rebase"])
+        run_command(["git", "push", "origin", REPOSITORY_BRANCH])
+        print("[ДИСПЕТЧЕР] Изменения предварительной обработки сохранены в GitHub.")
+        return True
+    except Exception as err:
+        print(f"[ДИСПЕТЧЕР] Ошибка сохранения предварительной обработки: {str(err)}")
+        return False
+
+def run_manifest_processor():
+    """Запускает предварительную обработку манифестов перед Analyzer."""
+    print("\n[ДИСПЕТЧЕР] Запуск модуля 'manifest_processor.py'...")
+    try:
+        result = subprocess.run(
+            [sys.executable, "_actions/manifest_processor.py"],
+            capture_output=True,
+            text=True
+        )
+        print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
+        if result.returncode != 0:
+            print(f"[ДИСПЕТЧЕР] Manifest Processor завершился с кодом {result.returncode}.")
+            return False
+        return True
+    except Exception as err:
+        print(f"[ДИСПЕТЧЕР] Ошибка запуска Manifest Processor: {str(err)}")
         return False
 
 def commit_and_push_bundle(teacher_login):
@@ -174,6 +218,12 @@ def run_control_pipeline():
             print(f"[ДИСПЕТЧЕР] В _output файлы прошлых смен: {output_files}. Ожидаем очистки.")
             if not wait_until_output_empty(fine_token) or not sync_repository():
                 return
+
+        if not run_manifest_processor():
+            return
+
+        if not commit_and_push_manifest_cleanup():
+            return
 
         analyzer_status = run_analyzer()
 
