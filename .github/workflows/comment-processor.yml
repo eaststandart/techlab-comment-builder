@@ -1,7 +1,7 @@
 # ==============================================================================
 # @module  comment-processor.yml
-# @about   Модуль автоматизации обработки и отправки медиа-пакетов.
-# @purpose Защита от параллельного запуска процессов и вызов диспетчера медиа-пакетов.
+# @about   Модуль автоматизации обработки и отправки комплектов комментариев.
+# @purpose Защита от параллельного запуска процессов и вызов диспетчера комментариев.
 # @author  TechLab
 # @version 1.0.0
 # ==============================================================================
@@ -19,14 +19,14 @@ permissions:
 # Защищаем репозиторий от одновременной работы нескольких диспетчеров.
 # Текущий запущенный сервер последовательно обработает все прилетевшие комплекты.
 concurrency:
-  group: media-dispatcher
+  group: comment-dispatcher
   cancel-in-progress: false
 
 jobs:
   check-and-trigger:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Media Repository
+      - name: Checkout Comment Builder Repository
         uses: actions/checkout@v4
         with:
           token: ${{ github.token }}
@@ -43,7 +43,7 @@ jobs:
       - name: Setup Fast FFmpeg Cache
         uses: AnimMouse/setup-ffmpeg@v1
 
-      - name: Run Smart Media Bundle Dispatcher
+      - name: Run Comment Dispatcher
         env:
           MY_FINE_TOKEN: ${{ secrets.MY_FINE_TOKEN }}
         run: python _actions/comment_dispatcher.py
