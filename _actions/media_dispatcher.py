@@ -175,10 +175,10 @@ def wait_until_output_empty(fine_token):
 
         time.sleep(OUTPUT_CHECK_INTERVAL)
 
-def run_analyzer():
-    print("\n[ДИСПЕТЧЕР] Запуск модуля 'media-analyzer.py'...")
+def run_manifest_analyzer():
+    print("\n[ДИСПЕТЧЕР] Запуск модуля 'manifest-analyzer.py'...")
     try:
-        result = subprocess.run([sys.executable, "_actions/media-analyzer.py"], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "_actions/manifest-analyzer.py"], capture_output=True, text=True)
         print(result.stdout)
         
         analyzer_status = "NO_BUNDLE_READY"
@@ -188,7 +188,7 @@ def run_analyzer():
 
         return analyzer_status
     except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Ошибка запуска analyzer: {str(err)}")
+        print(f"[ДИСПЕТЧЕР] Ошибка запуска Manifest Analyzer: {str(err)}")
         return "ERROR_ANALYZER"
 
 def run_control_pipeline():
@@ -225,7 +225,7 @@ def run_control_pipeline():
         if not commit_and_push_manifest_cleanup():
             return
 
-        analyzer_status = run_analyzer()
+        analyzer_status = run_manifest_analyzer()
 
         if analyzer_status in ("NO_BUNDLE_READY", "NO_FILES"):
             print("[ДИСПЕТЧЕР] Готовых комплектов в директории _input не обнаружено. Процесс контроля успешно завершён.")
@@ -237,7 +237,7 @@ def run_control_pipeline():
             continue
 
         if analyzer_status.startswith("ERROR_") or not analyzer_status.startswith("SUCCESS_"):
-            print(f"[ДИСПЕТЧЕР] Ошибка или неизвестный статус analyzer: {analyzer_status}")
+            print(f"[ДИСПЕТЧЕР] Ошибка или неизвестный статус Manifest Analyzer: {analyzer_status}")
             return
 
         teacher_login = analyzer_status.replace("SUCCESS_", "", 1).strip()
