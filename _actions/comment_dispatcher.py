@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @module  comment_dispatcher.py
-@about   Модуль диспетчера буферного шлюза медиа-пакетов.
+@about   Модуль диспетчера буферного шлюза конструктора комментариев.
 @purpose Циклическая координация предварительной обработки манифестов, анализатора, отправки коммитов, уведомления основного сайта через GitHub API и ожидания очистки шлюза.
 @author  TechLab
 @version 1.0.0
@@ -18,7 +18,7 @@ import subprocess
 # КОНФИГУРАЦИЯ ВНЕШНИХ ИНТЕРНЕТ-АДРЕСОВ GITHUB API
 # ==============================================================================
 SITE_API_URL = "https://api.github.com/repos/eaststandart/eaststandart.github.io/dispatches"
-CHECK_URL = "https://api.github.com/repos/eaststandart/techlab-media-content/contents/_output"
+CHECK_URL = "https://api.github.com/repos/eaststandart/techlab-comment-builder/contents/_output"
 REPOSITORY_BRANCH = "main"
 OUTPUT_CHECK_INTERVAL = 60
 MAX_OUTPUT_WAIT_SECONDS = 3600
@@ -145,7 +145,7 @@ def wait_until_output_empty(fine_token):
         check_counter += 1
         elapsed = int(time.time() - start_time)
         print(f"\n[ДИСПЕТЧЕР] Проверка №{check_counter} (Время: {elapsed} сек.)")
-        print("[ДИСПЕТЧЕР] Делаем запрос к API techlab-media-content для проверки удаления файлов.")
+        print("[ДИСПЕТЧЕР] Делаем запрос к API techlab-comment-builder для проверки удаления файлов.")
 
         if elapsed >= MAX_OUTPUT_WAIT_SECONDS:
             print("[ДИСПЕТЧЕР] Превышено максимальное время ожидания очистки _output.")
@@ -192,7 +192,7 @@ def run_manifest_analyzer():
         return "ERROR_ANALYZER"
 
 def run_control_pipeline():
-    print("\n=== [МОДУЛЬ MEDIA-DISPATCHER] ЗАПУСК ДИСПЕТЧЕРА КОНВЕЙЕРА ===")
+    print("\n=== [МОДУЛЬ COMMENT-DISPATCHER] ЗАПУСК ДИСПЕТЧЕРА КОНВЕЙЕРА ===")
     output_dir = os.path.join(os.getcwd(), "_output")
     input_dir = os.path.join(os.getcwd(), "_input")
 
