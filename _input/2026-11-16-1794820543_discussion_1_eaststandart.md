@@ -2,13 +2,13 @@
 publish_as_bot: false
 discussion_number: 1
 date: 2026-11-16
-timestamp: 1794820564
-published: false
+timestamp: 1794820697
+published: true
 title: "Новая форма"
 teacher: "eaststandart"
 ---
 
-# Черновик комментария
+# Комментарий для публикации
 
 ## Структура комментария
 
@@ -61,3 +61,5 @@ teacher: "eaststandart"
 ### Медиафайлы
 
 ![IMG_PNG_test1.png | photo_02.png](2026-11-16-1794820543_discussion_1_eaststandart_photo_02.png)
+
+![IMG_test2.jpg | photo_03.jpg](2026-11-16-1794820543_discussion_1_eaststandart_photo_03.jpg)
