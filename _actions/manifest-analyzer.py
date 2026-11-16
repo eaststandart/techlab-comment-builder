@@ -108,8 +108,8 @@ def analyze_and_process_media():
         # 3. Сбор вложений из WikiLinks и Markdown-ссылок.
         # Учитываются как встроенные медиа, так и обычные текстовые ссылки.
         # Порядок ссылок сохраняется для последовательной нумерации файлов.
-        wiki_link_re = re.compile(r"!?\\[\\[(.*?)\\]\\]")
-        markdown_link_re = re.compile(r"!?\\[[^\\]]*\\]\\(([^)]+)\\)")
+        wiki_link_re = re.compile(r"!?\[\[(.*?)\]\]")
+        markdown_link_re = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
         link_matches = []
         for pattern in (wiki_link_re, markdown_link_re):
             link_matches.extend(pattern.finditer(body_text))
