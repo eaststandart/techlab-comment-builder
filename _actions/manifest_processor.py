@@ -159,6 +159,28 @@ def process_manifests():
         candidates = set(data["attachments"]) | data["standard_files"]
         files_to_delete.update(candidates - keep_files)
 
+    def get_deletion_reason(file_name):
+        # Файл комплекта published=true должен быть явно указан в манифесте.
+        for manifest_name, data in manifests.items():
+            if (
+                data["status"] == "true"
+                and data["standard"]
+                and file_name in data["standard_files"]
+                and file_name not in data["attachments"]
+            ):
+                return "отсутствует ссылка в манифесте"
+
+        # Учитываем файлы, удаляемые вместе с delete/invalid-манифестом.
+        for manifest_name in delete_manifests:
+            data = manifests[manifest_name]
+            candidates = set(data["attachments"]) | data["standard_files"]
+            if file_name == manifest_name or file_name in candidates:
+                if data["status"] == "delete":
+                    return "манифест помечен published: delete"
+                return f"некорректный манифест: {data['reason']}"
+
+        return "отсутствует манифест"
+
     deleted = 0
     for name in sorted(files_to_delete):
         path = os.path.join(INPUT_DIR, name)
@@ -167,7 +189,7 @@ def process_manifests():
         try:
             os.remove(path)
             deleted += 1
-            print(f"[МАНИФЕСТ] Удалён файл: {name}")
+            print(f"[МАНИФЕСТ] Удалён: {name} | Причина: {get_deletion_reason(name)}.")
         except Exception as error:
             print(f"[МАНИФЕСТ] Критическая ошибка удаления '{name}': {error}")
             return 1
