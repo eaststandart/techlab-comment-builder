@@ -179,6 +179,8 @@ def process_manifests():
                     return "манифест помечен published: delete"
                 return f"некорректный манифест: {data['reason']}"
 
+        if manifests:
+            return "отсутствует ссылка в манифесте"
         return "отсутствует манифест"
 
     deleted = 0
