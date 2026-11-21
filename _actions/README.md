@@ -68,10 +68,8 @@
                  GitHub Actions
                        |
                        v
-             comment_builder.py
-              Главный диспетчер
-                       |
-          Проверка и освобождение _output
+              comment_builder.py
+               Главный диспетчер
                        |
                        v
              comment_processor.py
@@ -81,7 +79,7 @@
           Предварительная обработка _input
                        |
                        v
-             comment_builder.py
+              comment_builder.py
           Git commit/push изменений _input
                        |
                        v
@@ -89,7 +87,7 @@
                        |
                        v
              manifest-analyzer.py
-              Анализ и подготовка комплекта
+           Анализ и подготовка комплекта
                        |
                        v
               comment_renamer.py
@@ -105,35 +103,43 @@
                   v           v
                  Проверка результатов
                        |
-             +---------+---------+
-             |                   |
-          Успех               Ошибка
-             |                   |
-             v          +--------+---------+
-          _output/      |                  |
-             |     FILE_CORRUPTED         RETRY
-             |     немедленная            до 4 запусков
-             |     остановка              анализатора
-             |                         60 / 180 / 300 сек.
-             |                              |
-             |                              v
-             |                     comment_builder.py
-             |                     повторный запуск
-             |                     только анализатора
-             v
-       comment_builder.py
-       Git commit/push комплекта
-             |
-             v
-       comment-notify
-       Уведомление основного сайта
-             |
-             v
-       Ожидание очистки _output/
-             |
-             v
-       Следующий комплект из _input/
-~~~
+          +------------+-------------+
+          |            |             |
+          v            v             v
+       Успех      FILE_CORRUPTED    RETRY
+          |        Остановка         |
+          |        без повторов      v
+          |                 comment_builder.py
+          |                 Получает статус RETRY
+          |                          |
+          |                          v
+          |                 comment_processor.py
+          |                          |
+          |                          v
+          |                 manifest-analyzer.py
+          |                 Повторный запуск
+          |                 (до 4 запусков всего;
+          |                 задержки 60 / 180 / 300 сек.)
+          |                          |
+          |                          +----> Проверка результатов
+          |
+          v
+       _output/
+          |
+          v
+   comment_builder.py
+   Git commit/push комплекта
+          |
+          v
+   comment-notify
+   Уведомление сайта Творческой лаборатории
+          |
+          v
+   Ожидание очистки _output/
+          |
+          v
+   Следующий комплект из _input/
+~~~~~~
 
 ### Примечания к последовательности
 
