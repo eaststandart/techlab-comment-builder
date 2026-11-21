@@ -30,12 +30,15 @@ def compress_image_to_webp(source_path, target_path):
     ext = os.path.splitext(filename)[1].lower()
     is_webp = ext == ".webp"
     temp_path = None
+    source_reading = True
     original_size = os.path.getsize(source_path)
 
     try:
         with Image.open(source_path) as opened:
+            opened.load()
             orientation = opened.getexif().get(274, 1)
             img = ImageOps.exif_transpose(opened)
+            source_reading = False
 
             if img.mode in ("RGBA", "P") or img.mode != "RGB":
                 img = img.convert("RGB")
@@ -96,10 +99,17 @@ def compress_image_to_webp(source_path, target_path):
 
         return True
 
-    except (UnidentifiedImageError, OSError) as e:
+    except UnidentifiedImageError as e:
         reason = f"{type(e).__name__}: {e}"
         print(f"[КОМПРЕССОР ФОТО] Файл повреждён или не читается '{filename}': {reason}")
         return f"FILE_CORRUPTED|{filename}|{reason}"
+    except OSError as e:
+        reason = f"{type(e).__name__}: {e}"
+        if source_reading:
+            print(f"[КОМПРЕССОР ФОТО] Не удалось декодировать изображение '{filename}': {reason}")
+            return f"FILE_CORRUPTED|{filename}|{reason}"
+        print(f"[КОМПРЕССОР ФОТО] Сбой чтения или записи при обработке '{filename}': {reason}")
+        return f"RETRY|{filename}|{reason}"
     except Exception as e:
         reason = f"{type(e).__name__}: {e}"
         print(f"[КОМПРЕССОР ФОТО] Временный сбой оптимизации '{filename}': {reason}")
