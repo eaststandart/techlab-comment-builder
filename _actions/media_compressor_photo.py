@@ -9,7 +9,7 @@
 """
 
 import os
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 # ==============================================================================
 # КОНФИГУРАЦИЯ ПАРАМЕТРОВ СЖАТИЯ ГРАФИКИ
@@ -96,12 +96,14 @@ def compress_image_to_webp(source_path, target_path):
 
         return True
 
+    except (UnidentifiedImageError, OSError) as e:
+        reason = f"{type(e).__name__}: {e}"
+        print(f"[КОМПРЕССОР ФОТО] Файл повреждён или не читается '{filename}': {reason}")
+        return f"FILE_CORRUPTED|{filename}|{reason}"
     except Exception as e:
-        print(
-            f"[КОМПРЕССОР ФОТО] Ошибка оптимизации Pillow для "
-            f"'{filename}': {str(e)}"
-        )
-        return False
+        reason = f"{type(e).__name__}: {e}"
+        print(f"[КОМПРЕССОР ФОТО] Временный сбой оптимизации '{filename}': {reason}")
+        return f"RETRY|{filename}|{reason}"
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
