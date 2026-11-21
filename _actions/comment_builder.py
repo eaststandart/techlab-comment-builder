@@ -199,7 +199,11 @@ def run_control_pipeline():
         analyzer_status = None
         for attempt in range(1, MAX_BUNDLE_ATTEMPTS + 1):
             analyzer_status = run_manifest_analyzer()
-            if analyzer_status != "BUNDLE_NOT_READY":
+            if analyzer_status.startswith("FILE_CORRUPTED|"):
+                print(f"[ДИСПЕТЧЕР] Обнаружен повреждённый файл. Повторы не выполняются: {analyzer_status}")
+                raise SystemExit(1)
+
+            if not analyzer_status.startswith("RETRY|"):
                 break
 
             if attempt < MAX_BUNDLE_ATTEMPTS:
@@ -213,8 +217,9 @@ def run_control_pipeline():
             else:
                 print(
                     f"[ДИСПЕТЧЕР] Комплект не удалось обработать за "
-                    f"{MAX_BUNDLE_ATTEMPTS} попытки. Останавливаем обработку."
+                    f"{MAX_BUNDLE_ATTEMPTS} попытки. Последняя причина: {analyzer_status}"
                 )
+                raise SystemExit(1)
 
 
         if analyzer_status in ("NO_BUNDLE_READY", "NO_FILES"):
@@ -228,7 +233,7 @@ def run_control_pipeline():
 
         if analyzer_status.startswith("ERROR_") or not analyzer_status.startswith("SUCCESS_"):
             print(f"[ДИСПЕТЧЕР] Ошибка или неизвестный статус Manifest Analyzer: {analyzer_status}")
-            return
+            raise SystemExit(1)
 
         teacher_login = analyzer_status.replace("SUCCESS_", "", 1).strip()
         print(f"[ДИСПЕТЧЕР] Обнаружен готовый комплект для преподавателя: '{teacher_login}'")
