@@ -60,10 +60,6 @@ def compress_image_to_webp(source_path, target_path):
                 except AttributeError:
                     resample_filter = Image.ANTIALIAS
                 img = img.resize((new_width, new_height), resample_filter)
-                print(
-                    f"[КОМПРЕССОР ФОТО] Сжатие геометрии '{filename}': "
-                    f"с {orig_width}x{orig_height} до {new_width}x{new_height}"
-                )
             else:
                 print(
                     f"[КОМПРЕССОР ФОТО] Геометрия '{filename}' в пределах нормы "
