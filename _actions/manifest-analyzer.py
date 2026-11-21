@@ -221,8 +221,12 @@ def analyze_and_process_media():
                             print(f"[АНАЛИЗАТОР] Ошибка обработки видео '{raw_name}': {e}")
                             result = False
 
+                        if isinstance(result, str) and result.startswith(("FILE_CORRUPTED|", "RETRY|")):
+                            processing_status = result
+                            processing_failed = True
+                            break
                         if result is False or not os.path.isfile(target_path):
-                            print(f"[АНАЛИЗАТОР] Файл '{raw_name}' не обработан.")
+                            processing_status = f"RETRY|{raw_name}|Целевой файл после обработки видео не создан."
                             processing_failed = True
                             break
 
