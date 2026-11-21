@@ -165,7 +165,7 @@ def analyze_and_process_media():
 
         # Превентивная локальная проверка перед физическим переносом файлов
         if sorted(f for f in os.listdir(output_dir) if f.endswith(".md")):
-            return "OUTPUT_BUSY"
+            return finish_status("OUTPUT_BUSY")
 
         # РЕАЛЬНЫЙ ПРОЦЕСС №2: ВЫЗОВ ВНЕШНЕГО ПЕРЕИМЕНОВАТЕЛЯ CMS СТРОГО ДО СЖАТИЯ
         updated_body_text, target_files_list, base_filename = standardize_bundle_names(
@@ -226,13 +226,8 @@ def analyze_and_process_media():
         shutil.move(md_path, new_md_path)
         print(f"[АНАЛИЗАТОР] Стандартизированный манифест {final_md_name} перемещен в _output.")
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №4: ОФИЦИАЛЬНАЯ ФИКСАЦИЯ СТАТУСА УСПЕХА В GITHUB_ENV
+        # Финальный статус передаётся вызывающему процессу единым способом.
         status = f"SUCCESS_{teacher}"
-        if "GITHUB_ENV" in os.environ:
-            with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-                env_file.write(f"ANALYZER_STATUS={status}\n")
-
-        print(f"[АНАЛИЗАТОР] Финальный статус работы модуля: {status}")
         return finish_status(status)
 
     print("[АНАЛИЗАТОР] Готовых или открытых по дате комплектов для переноса не обнаружено.")
