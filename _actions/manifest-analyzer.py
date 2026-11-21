@@ -26,7 +26,8 @@ def finish_status(status):
     print(f"[АНАЛИЗАТОР] Финальный статус работы модуля: {status}")
     if "GITHUB_ENV" in os.environ:
         with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-            env_file.write(f"ANALYZER_STATUS={status}\n")
+            safe_status = status.replace("\\r", " ").replace("\\n", " ")
+            env_file.write(f"ANALYZER_STATUS={safe_status}\n")
     return status
 
 def get_vladivostok_date():
