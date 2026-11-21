@@ -2,8 +2,8 @@
 publish_as_bot: false
 discussion_number: 83
 discussion_comment: 1867726
-date: 2026-11-17
-published: false
+date: 2026-11-22
+published: true
 title:
 teacher: TechLab
 ---
