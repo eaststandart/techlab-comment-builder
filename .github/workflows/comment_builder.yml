@@ -18,7 +18,7 @@ permissions:
 
 # Один запущенный диспетчер последовательно обработает все поступившие комплекты.
 concurrency:
-  group: comment-builder
+  group: comment-dispatcher
   cancel-in-progress: false
 
 jobs:
