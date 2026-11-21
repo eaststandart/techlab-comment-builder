@@ -8,8 +8,14 @@
 @version 1.0.0
 """
 
+import os
+import signal
 import subprocess
 import sys
+import threading
+
+
+ANALYZER_TIMEOUT_SECONDS = 15 * 60
 
 
 def run_manifest_processor():
@@ -33,24 +39,77 @@ def run_manifest_processor():
         return False
 
 
-def run_manifest_analyzer():
-    """Запускает анализатор и возвращает его финальный статус."""
-    print("\n[ОБРАБОТЧИК] Запуск модуля 'manifest-analyzer.py'...")
+def _stop_analyzer_process(process):
+    """Завершает анализатор вместе с запущенными им дочерними процессами."""
     try:
-        result = subprocess.run(
-            [sys.executable, "_actions/manifest-analyzer.py"],
-            capture_output=True,
-            text=True
-        )
-        print(result.stdout)
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    except Exception:
+        process.terminate()
 
-        if result.returncode != 0:
-            if result.stderr:
-                print(result.stderr)
-            print(f"[ОБРАБОТЧИК] Manifest Analyzer завершился с кодом {result.returncode}.")
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except Exception:
+            process.kill()
+        process.wait()
+
+
+def run_manifest_analyzer():
+    """Запускает анализатор с потоковым выводом и ограничением времени."""
+    print("\n[ОБРАБОТЧИК] Запуск модуля 'manifest-analyzer.py'...")
+    print(
+        f"[ОБРАБОТЧИК] Тайм-аут одной попытки анализатора: "
+        f"{ANALYZER_TIMEOUT_SECONDS // 60} минут."
+    )
+
+    process = None
+    output_lines = []
+
+    try:
+        process = subprocess.Popen(
+            [sys.executable, "-u", "_actions/manifest-analyzer.py"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            start_new_session=True
+        )
+
+        def forward_output():
+            try:
+                for line in process.stdout:
+                    output_lines.append(line)
+                    print(line, end="", flush=True)
+            finally:
+                process.stdout.close()
+
+        output_thread = threading.Thread(target=forward_output, daemon=True)
+        output_thread.start()
+
+        try:
+            return_code = process.wait(timeout=ANALYZER_TIMEOUT_SECONDS)
+        except subprocess.TimeoutExpired:
+            print(
+                f"[ОБРАБОТЧИК] Превышен тайм-аут {ANALYZER_TIMEOUT_SECONDS // 60} минут. "
+                "Завершаем анализатор и его дочерние процессы."
+            )
+            _stop_analyzer_process(process)
+            output_thread.join(timeout=10)
+            return "ERROR_ANALYZER_TIMEOUT"
+
+        output_thread.join()
+
+        if return_code != 0:
+            print(f"[ОБРАБОТЧИК] Manifest Analyzer завершился с кодом {return_code}.")
             return "ERROR_ANALYZER"
 
-        for line in result.stdout.splitlines():
+        for line in output_lines:
             if "Финальный статус работы модуля:" in line:
                 analyzer_status = line.split(":")[-1].strip()
                 if analyzer_status:
@@ -59,6 +118,9 @@ def run_manifest_analyzer():
 
         print("[ОБРАБОТЧИК] Manifest Analyzer не вернул ожидаемый финальный статус.")
         return "ERROR_ANALYZER"
+
     except Exception as err:
+        if process is not None and process.poll() is None:
+            _stop_analyzer_process(process)
         print(f"[ОБРАБОТЧИК] Ошибка запуска Manifest Analyzer: {str(err)}")
         return "ERROR_ANALYZER"
