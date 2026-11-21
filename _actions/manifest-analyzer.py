@@ -190,6 +190,7 @@ def analyze_and_process_media():
 
                 final_transfer_list = []
                 processing_failed = False
+                processing_status = None
 
                 for raw_name, target_name, media_type in target_files_list:
                     raw_path = os.path.join(work_dir, raw_name)
@@ -202,8 +203,12 @@ def analyze_and_process_media():
                             print(f"[АНАЛИЗАТОР] Ошибка обработки фото '{raw_name}': {e}")
                             result = False
 
+                        if isinstance(result, str) and result.startswith(("FILE_CORRUPTED|", "RETRY|")):
+                            processing_status = result
+                            processing_failed = True
+                            break
                         if result is False or not os.path.isfile(target_path):
-                            print(f"[АНАЛИЗАТОР] Файл '{raw_name}' не обработан.")
+                            processing_status = f"RETRY|{raw_name}|Целевой файл после обработки не создан."
                             processing_failed = True
                             break
 
@@ -235,7 +240,10 @@ def analyze_and_process_media():
                         "[АНАЛИЗАТОР] Комплект не готов. Временные результаты удаляются; "
                         "исходный комплект в _input не изменён."
                     )
-                    return finish_status("BUNDLE_NOT_READY")
+                    if processing_status:
+                        print(f"[АНАЛИЗАТОР] Причина остановки обработки: {processing_status}")
+                        return finish_status(processing_status)
+                    return finish_status("RETRY|unknown|Ошибка обработки файла комплекта без подробностей.")
 
                 # Проверяем комплектность результатов до любого переноса в _output.
                 missing_results = [
@@ -244,7 +252,7 @@ def analyze_and_process_media():
                 ]
                 if missing_results:
                     print(f"[АНАЛИЗАТОР] Не найдены готовые файлы: {missing_results}")
-                    return finish_status("BUNDLE_NOT_READY")
+                    return finish_status(f"RETRY|{missing_results[0]}|Подготовленный файл результата отсутствует.")
 
                 # Формируем обновлённый манифест только после успешной обработки всех файлов.
                 meta_lines = ["---"]
