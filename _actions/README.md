@@ -65,80 +65,54 @@
 Схема показывает порядок вызова Python-модулей и переходы между этапами обработки. Повторный запуск выполняется только для `manifest-analyzer.py`.
 
 ```text
-                 [GitHub Actions]
-                        |
-                        ▼
-              [comment_builder.py]
-                 Главный диспетчер
-                        |
-                        ▼
-             [comment_processor.py]
-                        |
-                        ▼
-             [manifest_processor.py]
-             Предварительная обработка
-                        |
-                        ▼
-              [comment_builder.py]
-             Git commit/push изменений
-                        |
-                        ▼
-             [comment_processor.py]
-                        |
-                        ▼
-             [manifest-analyzer.py]
-              Анализ и подготовка комплекта
-                        |
-                        ▼
-              [comment_renamer.py]
-              Стандартизация имен файлов
-                        |
-                        ▼
-           Обработка вложений по типу файла
-                        |
-             ┌──────────┴──────────┐
-             ▼                     ▼
- [media_compressor_photo.py] [media_compressor_video.py]
-          Фото → WebP              Видео → WebM
-             └──────────┬──────────┘
-                        ▼
-               Проверка результата
-                        |
-          ┌─────────────┼──────────────┐
-          ▼             ▼              ▼
-        Успех     FILE_CORRUPTED     RETRY
-          |        Остановка           |
-          |        без повторов        ▼
-          |                   [comment_builder.py]
-          |                    Получает статус RETRY
-          |                             |
-          |                             ▼
-          |                  [comment_processor.py]
-          |                             |
-          |                             ▼
-          |                  [manifest-analyzer.py]
-          |                    Повторный запуск
-          |                    До 4 запусков всего
-          |                    Паузы: 60 / 180 / 300 сек.
-          |                             |
-          |                             └──────────────► Проверка результата
-          |
+[GitHub Actions] ──► [comment_builder.py] ──► [comment_processor.py] ──┐
+                         Главный диспетчер                              │
+                                                                       │
+                                                                       ▼
+[comment_processor.py] ◄── [comment_builder.py] ◄── [manifest_processor.py]
+                              Git commit/push             Предварительная
+                              изменений                   обработка
+          │
           ▼
-       [_output/]
-          |
+[manifest-analyzer.py]
+ Анализ и подготовка комплекта
+          │
           ▼
-   [comment_builder.py]
-   Git commit/push готового комплекта
-          |
+[comment_renamer.py]
+ Стандартизация имен файлов
+          │
           ▼
-     [comment-notify]
-   Уведомление сайта Творческой лаборатории
-          |
+Обработка вложений по типу файла
+          │
+ ┌────────┴────────┐
+ ▼                 ▼
+[media_compressor_photo.py] [media_compressor_video.py]
+ Фото → WebP                 Видео → WebM
+ └────────┬────────┘
           ▼
-   Ожидание очистки _output/
-          |
+Проверка результата
+          │
+ ┌────────┼──────────────┐
+ ▼        ▼              ▼
+Успех  FILE_CORRUPTED   RETRY ──► [comment_builder.py] ──► [comment_processor.py]
+ │      Остановка без                                                │
+ ▼      повторов                                                     ▼
+[_output/]                                                [manifest-analyzer.py]
+ │                                                                    │
+ ▼                                                                    ▼
+[comment_builder.py]                                         Повторный запуск
+Git commit/push готового комплекта                           До 4 запусков всего
+                                                              Паузы: 60 / 180 / 300 сек.
+          │
           ▼
-   Следующий комплект из _input/
+[comment-notify]
+Уведомление сайта Творческой лаборатории
+          │
+          ▼
+Ожидание очистки _output/
+          │
+          ▼
+Следующий комплект из _input/
 ```
 ### Примечания к последовательности
 
