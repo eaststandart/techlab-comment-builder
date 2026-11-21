@@ -52,8 +52,8 @@ def sync_repository():
 def commit_and_push_manifest_cleanup():
     """Сохраняет изменения _input, выполненные предварительной обработкой."""
     try:
-        run_command(["git", "config", "--global", "user.name", "TechLab Media Bot"])
-        run_command(["git", "config", "--global", "user.email", "media-bot@techlab.local"])
+        run_command(["git", "config", "--global", "user.name", "TechLab Comment Bot"])
+        run_command(["git", "config", "--global", "user.email", "comment-bot@techlab.local"])
         run_command(["git", "add", "_input"])
 
         diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"])
@@ -76,8 +76,8 @@ def commit_and_push_manifest_cleanup():
 
 def commit_and_push_bundle(teacher_login):
     try:
-        run_command(["git", "config", "--global", "user.name", "TechLab Media Bot"])
-        run_command(["git", "config", "--global", "user.email", "media-bot@techlab.local"])
+        run_command(["git", "config", "--global", "user.name", "TechLab Comment Bot"])
+        run_command(["git", "config", "--global", "user.email", "comment-bot@techlab.local"])
         run_command(["git", "add", "_input", "_output"])
 
         diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"])
