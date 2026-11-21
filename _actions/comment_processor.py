@@ -110,8 +110,9 @@ def run_manifest_analyzer():
             return "ERROR_ANALYZER"
 
         for line in output_lines:
-            if "Финальный статус работы модуля:" in line:
-                analyzer_status = line.split(":")[-1].strip()
+            marker = "Финальный статус работы модуля:"
+            if marker in line:
+                analyzer_status = line.split(marker, 1)[1].strip()
                 if analyzer_status:
                     return analyzer_status
                 break
