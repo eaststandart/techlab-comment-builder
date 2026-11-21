@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import shutil
+import tempfile
 from datetime import datetime, timedelta
 
 # Подключаем оба наших компрессора и модуль стандартизации имен
@@ -167,68 +168,138 @@ def analyze_and_process_media():
         if sorted(f for f in os.listdir(output_dir) if f.endswith(".md")):
             return finish_status("OUTPUT_BUSY")
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №2: ВЫЗОВ ВНЕШНЕГО ПЕРЕИМЕНОВАТЕЛЯ CMS СТРОГО ДО СЖАТИЯ
-        updated_body_text, target_files_list, base_filename = standardize_bundle_names(
-            input_dir, meta, body_text, attachments
-        )
+        # Подготовка выполняется в отдельной временной копии комплекта.
+        # До успешной обработки всех файлов содержимое _input не изменяется.
+        moved_output = []
+        try:
+            with tempfile.TemporaryDirectory(
+                prefix=".bundle_work_", dir=input_dir
+            ) as work_dir:
+                work_md_path = os.path.join(work_dir, md_name)
+                shutil.copy2(md_path, work_md_path)
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №2.5: СЖАТИЕ И ОПТИМИЗАЦИЯ УЖЕ СТАНДАРТИЗИРОВАННЫХ ФАЙЛОВ В _INPUT
-        final_transfer_list = []
-        for raw_name, target_name, media_type in target_files_list:
-            raw_path = os.path.join(input_dir, raw_name)
-            target_path = os.path.join(input_dir, target_name)
-            
-            if media_type == "photo":
-                try:
-                    result = compress_image_to_webp(raw_path, target_path)
-                    if result:
-                        if result != "PRESERVED" and os.path.exists(raw_path):
-                            os.remove(raw_path)
+                for file_name in attachments:
+                    shutil.copy2(
+                        os.path.join(input_dir, file_name),
+                        os.path.join(work_dir, file_name)
+                    )
+
+                updated_body_text, target_files_list, base_filename = standardize_bundle_names(
+                    work_dir, meta, body_text, attachments
+                )
+
+                final_transfer_list = []
+                processing_failed = False
+
+                for raw_name, target_name, media_type in target_files_list:
+                    raw_path = os.path.join(work_dir, raw_name)
+                    target_path = os.path.join(work_dir, target_name)
+
+                    if media_type == "photo":
+                        try:
+                            result = compress_image_to_webp(raw_path, target_path)
+                        except Exception as e:
+                            print(f"[АНАЛИЗАТОР] Ошибка обработки фото '{raw_name}': {e}")
+                            result = False
+
+                        if result is False or not os.path.isfile(target_path):
+                            print(f"[АНАЛИЗАТОР] Фото '{raw_name}' не обработано. Комплект пока не готов.")
+                            processing_failed = True
+                            break
+
                         final_transfer_list.append(target_name)
-                    else:
-                        final_transfer_list.append(raw_name)
-                except Exception as e:
-                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой Pillow для {raw_name}: {str(e)}. Транзит.")
-                    final_transfer_list.append(raw_name)
-            elif media_type == "video":
-                try:
-                    result = compress_video_to_webm(raw_path, target_path)
-                    if result:
-                        if result != "PRESERVED" and os.path.exists(raw_path):
-                            os.remove(raw_path)
+
+                    elif media_type == "video":
+                        try:
+                            result = compress_video_to_webm(raw_path, target_path)
+                        except Exception as e:
+                            print(f"[АНАЛИЗАТОР] Ошибка обработки видео '{raw_name}': {e}")
+                            result = False
+
+                        if result is False or not os.path.isfile(target_path):
+                            print(f"[АНАЛИЗАТОР] Видео '{raw_name}' не обработано. Комплект пока не готов.")
+                            processing_failed = True
+                            break
+
                         final_transfer_list.append(target_name)
+
                     else:
+                        if not os.path.isfile(raw_path):
+                            print(f"[АНАЛИЗАТОР] Файл комплекта '{raw_name}' не найден после стандартизации.")
+                            processing_failed = True
+                            break
                         final_transfer_list.append(raw_name)
-                except Exception as e:
-                    print(f"[АНАЛИЗАТОР] ⚠️ Сбой FFmpeg для {raw_name}: {str(e)}. Транзит.")
-                    final_transfer_list.append(raw_name)
-            else:
-                final_transfer_list.append(raw_name)
 
-        # Пересборка Front Matter с принудительной пустой строкой \n\n
-        meta_lines = ["---"]
-        for k, v in meta.items():
-            meta_lines.append(f"{k}: {v}")
-        meta_lines.append("---\n\n") # Двойной перенос жестко фиксирует пустую строку
-        final_md_content = "\n".join(meta_lines) + updated_body_text
+                if processing_failed:
+                    print(
+                        "[АНАЛИЗАТОР] Комплект не готов. Временные результаты удаляются; "
+                        "исходный комплект в _input не изменён."
+                    )
+                    return finish_status("BUNDLE_NOT_READY")
 
-        # Перезаписываем .md файл прямо в _input
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(final_md_content)
+                # Проверяем комплектность результатов до любого переноса в _output.
+                missing_results = [
+                    name for name in final_transfer_list
+                    if not os.path.isfile(os.path.join(work_dir, name))
+                ]
+                if missing_results:
+                    print(f"[АНАЛИЗАТОР] Не найдены готовые файлы: {missing_results}")
+                    return finish_status("BUNDLE_NOT_READY")
 
-        # РЕАЛЬНЫЙ ПРОЦЕСС №3: ФИЗИЧЕСКИЙ ПЕРЕНОС ФАЙЛОВ (100% ЧИСТАЯ АНАЛОГИЯ С ЖУРНАЛОМ)
-        # Переносим подготовленные медиафайлы из _input в _output
-        for file_name in final_transfer_list:
-            old_file_path = os.path.join(input_dir, file_name)
-            new_file_path = os.path.join(output_dir, file_name)
-            shutil.move(old_file_path, new_file_path)
-            print(f"[АНАЛИЗАТОР] Перемещаем медиафайл комплекта '{md_name}': {file_name}")
+                # Формируем обновлённый манифест только после успешной обработки всех файлов.
+                meta_lines = ["---"]
+                for k, v in meta.items():
+                    meta_lines.append(f"{k}: {v}")
+                meta_lines.append("---\\n\\n")
+                final_md_content = "\\n".join(meta_lines) + updated_body_text
 
-        # Перемещаем сам манифест .md в папку Выхода под новым стандартным именем CMS
-        final_md_name = f"{base_filename}.md"
-        new_md_path = os.path.join(output_dir, final_md_name)
-        shutil.move(md_path, new_md_path)
-        print(f"[АНАЛИЗАТОР] Стандартизированный манифест {final_md_name} перемещен в _output.")
+                final_md_name = f"{base_filename}.md"
+                staged_md_path = os.path.join(work_dir, final_md_name)
+                with open(staged_md_path, "w", encoding="utf-8") as f:
+                    f.write(final_md_content)
+
+                output_names = final_transfer_list + [final_md_name]
+                collisions = [
+                    name for name in output_names
+                    if os.path.exists(os.path.join(output_dir, name))
+                ]
+                if collisions:
+                    print(f"[АНАЛИЗАТОР] В _output уже существуют файлы: {collisions}")
+                    return finish_status("ERROR_OUTPUT_COLLISION")
+
+                # Переносим только полностью подготовленный комплект.
+                try:
+                    for file_name in final_transfer_list:
+                        staged_path = os.path.join(work_dir, file_name)
+                        output_path = os.path.join(output_dir, file_name)
+                        os.replace(staged_path, output_path)
+                        moved_output.append((output_path, staged_path))
+                        print(f"[АНАЛИЗАТОР] Подготовлен файл комплекта: {file_name}")
+
+                    output_md_path = os.path.join(output_dir, final_md_name)
+                    os.replace(staged_md_path, output_md_path)
+                    moved_output.append((output_md_path, staged_md_path))
+                except Exception:
+                    # При сбое переноса убираем уже перемещённые части комплекта из _output.
+                    for output_path, staged_path in reversed(moved_output):
+                        if os.path.exists(output_path):
+                            os.replace(output_path, staged_path)
+                    raise
+
+                # Исходники удаляются только после успешной подготовки и переноса всего комплекта.
+                for file_name in attachments:
+                    source_path = os.path.join(input_dir, file_name)
+                    if os.path.exists(source_path):
+                        os.remove(source_path)
+
+                os.remove(md_path)
+                print(
+                    f"[АНАЛИЗАТОР] Полный комплект '{final_md_name}' перемещён в _output."
+                )
+
+        except Exception as e:
+            print(f"[АНАЛИЗАТОР] Ошибка подготовки комплекта: {type(e).__name__}: {e}")
+            return finish_status("ERROR_BUNDLE_PROCESSING")
 
         # Финальный статус передаётся вызывающему процессу единым способом.
         status = f"SUCCESS_{teacher}"

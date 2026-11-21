@@ -69,16 +69,18 @@ def compress_image_to_webp(source_path, target_path):
                     f"({orig_width}x{orig_height})."
                 )
 
-            if is_webp:
-                # WebP сохраняем на месте только после успешной записи временного файла.
-                temp_path = source_path + ".tmp.webp"
-                img.save(temp_path, "WEBP", quality=WEBP_QUALITY)
-            else:
-                img.save(target_path, "WEBP", quality=WEBP_QUALITY)
+            # Любой результат сначала полностью записывается во временный файл.
+            # Исходник или целевой файл заменяется только после успешного сохранения.
+            temp_path = (
+                source_path + ".tmp.webp"
+                if is_webp else target_path + ".tmp.webp"
+            )
+            img.save(temp_path, "WEBP", quality=WEBP_QUALITY)
+
+        os.replace(temp_path, source_path if is_webp else target_path)
+        temp_path = None
 
         if is_webp:
-            os.replace(temp_path, source_path)
-            temp_path = None
             return "PRESERVED"
 
         return True

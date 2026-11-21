@@ -13,6 +13,9 @@ import time
 import requests
 import subprocess
 
+MAX_BUNDLE_ATTEMPTS = 3
+BUNDLE_RETRY_DELAY_SECONDS = 5
+
 from comment_processor import run_manifest_processor, run_manifest_analyzer
 
 SITE_API_URL = "https://api.github.com/repos/eaststandart/eaststandart.github.io/dispatches"
@@ -193,7 +196,25 @@ def run_control_pipeline():
         if not commit_and_push_manifest_cleanup():
             return
 
-        analyzer_status = run_manifest_analyzer()
+        analyzer_status = None
+        for attempt in range(1, MAX_BUNDLE_ATTEMPTS + 1):
+            analyzer_status = run_manifest_analyzer()
+            if analyzer_status != "BUNDLE_NOT_READY":
+                break
+
+            if attempt < MAX_BUNDLE_ATTEMPTS:
+                print(
+                    f"[ДИСПЕТЧЕР] Комплект не готов. Повторная попытка "
+                    f"{attempt + 1}/{MAX_BUNDLE_ATTEMPTS} через "
+                    f"{BUNDLE_RETRY_DELAY_SECONDS} сек."
+                )
+                time.sleep(BUNDLE_RETRY_DELAY_SECONDS)
+            else:
+                print(
+                    f"[ДИСПЕТЧЕР] Комплект не удалось обработать за "
+                    f"{MAX_BUNDLE_ATTEMPTS} попытки. Останавливаем обработку."
+                )
+
 
         if analyzer_status in ("NO_BUNDLE_READY", "NO_FILES"):
             print("[ДИСПЕТЧЕР] Готовых комплектов в директории _input не обнаружено. Процесс контроля успешно завершён.")
