@@ -161,7 +161,16 @@ def compress_video_to_webm(source_path, target_path):
     except subprocess.CalledProcessError as e:
         stdout_text = e.stdout.decode("utf-8", errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
         stderr_text = e.stderr.decode("utf-8", errors="replace") if isinstance(e.stderr, bytes) else (e.stderr or "")
-        reason = stderr_text.strip() or stdout_text.strip() or f"FFmpeg exit code {e.returncode}"
+        diagnostic_lines = stderr_text.splitlines() + stdout_text.splitlines()
+        reason = next(
+            (line.strip() for line in diagnostic_lines if _is_corrupt_media_error(line)),
+            None
+        )
+        if not reason:
+            reason = next(
+                (line.strip() for line in reversed(diagnostic_lines) if line.strip()),
+                f"FFmpeg exit code {e.returncode}"
+            )
         print(f"[КОМПРЕССОР ВИДЕО] Сбой FFmpeg для '{filename}'. Код возврата: {e.returncode}")
         if stdout_text:
             print(f"[КОМПРЕССОР ВИДЕО] STDOUT:\n{stdout_text}")
