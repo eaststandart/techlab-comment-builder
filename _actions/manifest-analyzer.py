@@ -19,6 +19,15 @@ from media_compressor_photo import compress_image_to_webp
 from media_compressor_video import compress_video_to_webm
 from comment_renamer import standardize_bundle_names
 
+
+def finish_status(status):
+    """Печатает единый статус для вызывающего процесса и сохраняет его в GitHub Actions."""
+    print(f"[АНАЛИЗАТОР] Финальный статус работы модуля: {status}")
+    if "GITHUB_ENV" in os.environ:
+        with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+            env_file.write(f"ANALYZER_STATUS={status}\n")
+    return status
+
 def get_vladivostok_date():
     """
     Возвращает текущую дату в часовом поясе Владивостока (UTC+10).
@@ -58,20 +67,20 @@ def analyze_and_process_media():
 
     if not os.path.exists(input_dir) or not os.path.exists(output_dir):
         print("[АНАЛИЗАТОР] ❌ Ошибка: Целевые директории не найдены.")
-        return "ERROR_DIR_NOT_FOUND"
+        return finish_status("ERROR_DIR_NOT_FOUND")
 
     # Защита от начала нового комплекта строго по расширению .md (как в оригинале Журнала)
     output_files = sorted(f for f in os.listdir(output_dir) if f.endswith(".md"))
     if output_files:
         print(f"[АНАЛИЗАТОР] Папка _output занята: {len(output_files)} .md файл(ов). Новый комплект не переносим.")
-        return "OUTPUT_BUSY"
+        return finish_status("OUTPUT_BUSY")
 
     all_files = sorted(os.listdir(input_dir))
     md_files = [f for f in all_files if f.endswith(".md")]
 
     if not md_files:
         print("[АНАЛИЗАТОР] В директории _input файлы манифестов (.md) отсутствуют.")
-        return "NO_FILES"
+        return finish_status("NO_FILES")
 
     current_vl_date = get_vladivostok_date()
     print(f"[АНАЛИЗАТОР] Текущая дата сервера по Владивостоку: {current_vl_date}")
@@ -224,13 +233,10 @@ def analyze_and_process_media():
                 env_file.write(f"ANALYZER_STATUS={status}\n")
 
         print(f"[АНАЛИЗАТОР] Финальный статус работы модуля: {status}")
-        return status
+        return finish_status(status)
 
     print("[АНАЛИЗАТОР] Готовых или открытых по дате комплектов для переноса не обнаружено.")
-    if "GITHUB_ENV" in os.environ:
-        with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-            env_file.write("ANALYZER_STATUS=NO_BUNDLE_READY\n")
-    return "NO_BUNDLE_READY"
+    return finish_status("NO_BUNDLE_READY")
 
 if __name__ == "__main__":
     status = analyze_and_process_media()
