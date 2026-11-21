@@ -30,6 +30,7 @@ def compress_image_to_webp(source_path, target_path):
     ext = os.path.splitext(filename)[1].lower()
     is_webp = ext == ".webp"
     temp_path = None
+    original_size = os.path.getsize(source_path)
 
     try:
         with Image.open(source_path) as opened:
@@ -77,8 +78,22 @@ def compress_image_to_webp(source_path, target_path):
             )
             img.save(temp_path, "WEBP", quality=WEBP_QUALITY)
 
-        os.replace(temp_path, source_path if is_webp else target_path)
+        output_path = source_path if is_webp else target_path
+        os.replace(temp_path, output_path)
         temp_path = None
+
+        output_size = os.path.getsize(output_path)
+        output_width, output_height = img.size
+        compression = (original_size - output_size) / original_size * 100 if original_size else 0
+        source_format = ext.lstrip(".").upper()
+        print(
+            f"[КОМПРЕССОР ФОТО] Файл: {filename} ({original_size} байт)."
+        )
+        print(
+            f"[КОМПРЕССОР ФОТО] {source_format} ({orig_width}×{orig_height}) -> "
+            f"WebP ({output_width}×{output_height}): {output_size} байт "
+            f"(сжатие {compression:.1f}%)."
+        )
 
         if is_webp:
             return "PRESERVED"
