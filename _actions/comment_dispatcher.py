@@ -180,13 +180,22 @@ def run_manifest_analyzer():
     try:
         result = subprocess.run([sys.executable, "_actions/manifest-analyzer.py"], capture_output=True, text=True)
         print(result.stdout)
-        
-        analyzer_status = "NO_BUNDLE_READY"
+
+        if result.returncode != 0:
+            if result.stderr:
+                print(result.stderr)
+            print(f"[ДИСПЕТЧЕР] Manifest Analyzer завершился с кодом {result.returncode}.")
+            return "ERROR_ANALYZER"
+
         for line in result.stdout.splitlines():
             if "Финальный статус работы модуля:" in line:
                 analyzer_status = line.split(":")[-1].strip()
+                if analyzer_status:
+                    return analyzer_status
+                break
 
-        return analyzer_status
+        print("[ДИСПЕТЧЕР] Manifest Analyzer не вернул ожидаемый финальный статус.")
+        return "ERROR_ANALYZER"
     except Exception as err:
         print(f"[ДИСПЕТЧЕР] Ошибка запуска Manifest Analyzer: {str(err)}")
         return "ERROR_ANALYZER"
