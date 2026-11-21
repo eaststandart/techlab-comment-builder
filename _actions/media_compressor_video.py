@@ -6,7 +6,7 @@
 @purpose Сохранение WebM без повторного кодирования при подходящей геометрии и
          двухрежимное преобразование остальных видео в WebM.
 @author  TechLab
-@version 1.0.2
+@version 1.0.3
 """
 
 import json
@@ -46,6 +46,28 @@ def get_video_geometry(path):
             width, height = height, width
 
     return width, height
+
+
+def _print_mode_result(label, size, source_size):
+    """Выводит размер результата режима и степень сжатия относительно оригинала."""
+    if size == float("inf"):
+        print(f"[КОМПРЕССОР ВИДЕО] {label}: выходной файл не создан.")
+        return
+
+    print(f"[КОМПРЕССОР ВИДЕО] {label}: {size} байт.")
+    difference = source_size - size
+    if source_size > 0 and difference >= 0:
+        percent = difference / source_size * 100
+        print(
+            f"[КОМПРЕССОР ВИДЕО] {label}: сжатие на "
+            f"{difference} байт ({percent:.1f}%)."
+        )
+    elif source_size > 0:
+        percent = abs(difference) / source_size * 100
+        print(
+            f"[КОМПРЕССОР ВИДЕО] {label}: размер увеличился на "
+            f"{abs(difference)} байт ({percent:.1f}%)."
+        )
 
 
 def compress_video_to_webm(source_path, target_path):
@@ -89,7 +111,9 @@ def compress_video_to_webm(source_path, target_path):
                 f"{width}x{height}. Уменьшаем геометрию."
             )
 
+        source_size = os.path.getsize(source_path)
         print(f"[КОМПРЕССОР ВИДЕО] Начинаем двухрежимную обработку '{filename}'...")
+        print(f"[КОМПРЕССОР ВИДЕО] Размер исходного файла: {source_size} байт.")
 
         for temp_file in (tmp_crf_path, tmp_bit_path):
             if os.path.exists(temp_file):
@@ -112,12 +136,30 @@ def compress_video_to_webm(source_path, target_path):
         size_crf = os.path.getsize(tmp_crf_path) if os.path.exists(tmp_crf_path) else float("inf")
         size_bit = os.path.getsize(tmp_bit_path) if os.path.exists(tmp_bit_path) else float("inf")
 
-        print(f"[КОМПРЕССОР ВИДЕО] CRF 25: {size_crf} байт; 700 kbps: {size_bit} байт.")
+        print(f"[КОМПРЕССОР ВИДЕО] Результаты теста веса для '{filename}':")
+        _print_mode_result("Режим качества (CRF 25)", size_crf, source_size)
+        _print_mode_result("Режим битрейта (700 kbps)", size_bit, source_size)
+
         if size_crf == float("inf") and size_bit == float("inf"):
             raise RuntimeError("Ни один режим FFmpeg не создал выходной файл.")
 
-        winner = tmp_crf_path if size_crf <= size_bit else tmp_bit_path
-        loser = tmp_bit_path if winner == tmp_crf_path else tmp_crf_path
+        if size_crf <= size_bit:
+            winner = tmp_crf_path
+            loser = tmp_bit_path
+            difference = size_bit - size_crf
+            print(
+                f"[КОМПРЕССОР ВИДЕО] Выбран режим CRF 25: "
+                f"файл меньше на {difference} байт."
+            )
+        else:
+            winner = tmp_bit_path
+            loser = tmp_crf_path
+            difference = size_crf - size_bit
+            print(
+                f"[КОМПРЕССОР ВИДЕО] Выбран режим 700 kbps: "
+                f"файл меньше на {difference} байт."
+            )
+
         os.replace(winner, target_path)
         if os.path.exists(loser):
             os.remove(loser)
