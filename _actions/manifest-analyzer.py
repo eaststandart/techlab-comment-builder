@@ -203,7 +203,7 @@ def analyze_and_process_media():
                             result = False
 
                         if result is False or not os.path.isfile(target_path):
-                            print(f"[АНАЛИЗАТОР] Фото '{raw_name}' не обработано. Комплект пока не готов.")
+                            print(f"[АНАЛИЗАТОР] Файл '{raw_name}' не обработан.")
                             processing_failed = True
                             break
 
@@ -217,7 +217,7 @@ def analyze_and_process_media():
                             result = False
 
                         if result is False or not os.path.isfile(target_path):
-                            print(f"[АНАЛИЗАТОР] Видео '{raw_name}' не обработано. Комплект пока не готов.")
+                            print(f"[АНАЛИЗАТОР] Файл '{raw_name}' не обработан.")
                             processing_failed = True
                             break
 
