@@ -66,29 +66,27 @@
 
 ```text
 [GitHub Actions] ──► [comment_builder.py] ──► [comment_processor.py] ──┐
-                         Главный диспетчер                              │
+                         Главный диспетчер                             │
                                                                        │
                                                                        ▼
 [comment_processor.py] ◄── [comment_builder.py] ◄── [manifest_processor.py]
-                              Git commit/push             Предварительная
-                              изменений                   обработка
+          │                  Git commit/push             Предварительная
+          │                    изменений                   обработка
           │
           ▼
-[manifest-analyzer.py]
-Анализ и подготовка комплекта
-          │
-          ▼
-[comment_renamer.py]
-Стандартизация имен файлов
-          │
-          ▼
-Обработка вложений по типу файла
-          │
+[manifest-analyzer.py] ──────────► [comment_renamer.py]
+Анализ и подготовка комплекта    Стандартизация имен файлов
+                                            │
+                                            │
+                                            ▼
+                        ┌──── Обработка вложений по типу файла
+                        │      
           ┌─────────────┴──────────────┐
-          ▼                           ▼
+          ▼                            ▼
 [media_compressor_photo.py] [media_compressor_video.py]
 Фото → WebP                  Видео → WebM
           └─────────────┬──────────────┘
+                        │
                         ▼
                Проверка результата
                         │
@@ -106,7 +104,7 @@
           │
           ▼
      [comment-notify]
-Уведомление сайта Творческой лаборатории
+Уведомление репозитория eaststandart.github.io
           │
           ▼
    Ожидание очистки _output/
@@ -114,6 +112,7 @@
           ▼
    Следующий комплект из _input/
 ```
+
 ### Примечания к последовательности
 
 * `comment_builder.py` вызывает функции запуска из `comment_processor.py`: сначала для `manifest_processor.py`, затем для `manifest-analyzer.py`.
