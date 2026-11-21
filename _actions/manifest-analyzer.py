@@ -67,22 +67,6 @@ def analyze_and_process_media():
     input_dir = os.path.join(os.getcwd(), "_input")
     output_dir = os.path.join(os.getcwd(), "_output")
 
-    # Временная одноразовая имитация RETRY для изолированного тестового манифеста.
-    retry_test_manifest = "2026-11-22-000000_discussion_9999_retry-test.md"
-    retry_test_path = os.path.join(input_dir, retry_test_manifest)
-    retry_test_marker = os.path.join(input_dir, ".retry_test_once")
-    if os.path.isfile(retry_test_path):
-        if not os.path.exists(retry_test_marker):
-            with open(retry_test_marker, "w", encoding="utf-8") as marker_file:
-                marker_file.write("first attempt")
-            print("[ТЕСТ RETRY] Контролируемый отказ первой попытки.")
-            return finish_status(
-                f"RETRY|{retry_test_manifest}|Контролируемая тестовая ошибка первой попытки."
-            )
-        os.remove(retry_test_marker)
-        os.remove(retry_test_path)
-        print("[ТЕСТ RETRY] Повторный запуск подтверждён. Тестовый манифест удалён без передачи в _output.")
-
     if not os.path.exists(input_dir) or not os.path.exists(output_dir):
         print("[АНАЛИЗАТОР] ❌ Ошибка: Целевые директории не найдены.")
         return finish_status("ERROR_DIR_NOT_FOUND")
