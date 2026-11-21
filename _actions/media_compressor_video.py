@@ -48,6 +48,17 @@ def get_video_geometry(path):
     return width, height
 
 
+def _is_corrupt_media_error(error_text):
+    """Распознаёт только явные признаки повреждённого контейнера."""
+    text = (error_text or "").lower()
+    signatures = (
+        "invalid data found when processing input",
+        "moov atom not found",
+        "ebml header parsing failed",
+    )
+    return any(signature in text for signature in signatures)
+
+
 def _print_mode_result(label, size):
     """Выводит только размер файла после соответствующего режима."""
     if size == float("inf"):
@@ -148,22 +159,22 @@ def compress_video_to_webm(source_path, target_path):
         return "PRESERVED" if is_webm else True
 
     except subprocess.CalledProcessError as e:
-        print(
-            f"[КОМПРЕССОР ВИДЕО] Сбой FFmpeg для '{filename}'. "
-            f"Код возврата: {e.returncode}"
-        )
-        if e.stdout:
-            print(f"[КОМПРЕССОР ВИДЕО] STDOUT:\n{e.stdout.decode('utf-8', errors='replace') if isinstance(e.stdout, bytes) else e.stdout}")
-        if e.stderr:
-            print(f"[КОМПРЕССОР ВИДЕО] STDERR FFmpeg:\n{e.stderr.decode('utf-8', errors='replace') if isinstance(e.stderr, bytes) else e.stderr}")
-        return False
+        stdout_text = e.stdout.decode("utf-8", errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
+        stderr_text = e.stderr.decode("utf-8", errors="replace") if isinstance(e.stderr, bytes) else (e.stderr or "")
+        reason = stderr_text.strip() or stdout_text.strip() or f"FFmpeg exit code {e.returncode}"
+        print(f"[КОМПРЕССОР ВИДЕО] Сбой FFmpeg для '{filename}'. Код возврата: {e.returncode}")
+        if stdout_text:
+            print(f"[КОМПРЕССОР ВИДЕО] STDOUT:\n{stdout_text}")
+        if stderr_text:
+            print(f"[КОМПРЕССОР ВИДЕО] STDERR FFmpeg:\n{stderr_text}")
+        if _is_corrupt_media_error(reason):
+            return f"FILE_CORRUPTED|{filename}|{reason}"
+        return f"RETRY|{filename}|{reason}"
 
     except Exception as e:
-        print(
-            f"[КОМПРЕССОР ВИДЕО] Ошибка обработки '{filename}': "
-            f"{type(e).__name__}: {e}"
-        )
-        return False
+        reason = f"{type(e).__name__}: {e}"
+        print(f"[КОМПРЕССОР ВИДЕО] Ошибка обработки '{filename}': {reason}")
+        return f"RETRY|{filename}|{reason}"
 
     finally:
         for temp_file in (tmp_crf_path, tmp_bit_path):
