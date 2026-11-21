@@ -84,7 +84,7 @@
           ┌─────────────┴──────────────┐
           ▼                            ▼
 [media_compressor_photo.py] [media_compressor_video.py]
-Фото → WebP                  Видео → WebM
+      Фото → WebP                  Видео → WebM
           └─────────────┬──────────────┘
                         │
                         ▼
