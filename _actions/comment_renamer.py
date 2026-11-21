@@ -47,7 +47,7 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
         base_ext = os.path.splitext(file_name)[1].lower()
         
         # --- СТАНДАРТИЗАЦИЯ ИМЕН ГРАФИКИ ---
-        if base_ext in [".jpg", ".jpeg", ".png"]:
+        if base_ext in [".jpg", ".jpeg", ".png", ".webp"]:
             photo_counter += 1
             # Формируем двузначный индекс сортировки (01, 02)
             str_index = f"{photo_counter:02d}"
@@ -64,7 +64,7 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
             final_transfer_list.append((renamed_raw_name, final_webp_name, "photo"))
             
         # --- СТАНДАРТИЗАЦИЯ ИМЕН ВИДЕО ---
-        elif base_ext in [".mp4", ".mov", ".avi", ".mkv"]:
+        elif base_ext in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
             video_counter += 1
             str_index = f"{video_counter:02d}"
             

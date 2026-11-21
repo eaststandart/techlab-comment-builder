@@ -5,56 +5,90 @@
 @about   Модуль серверного сжатия графических материалов.
 @purpose Валидация расширений, пропорциональный ресайз больших фото под HD-стандарт и конвертация в WebP.
 @author  TechLab
-@version 1.0.3
+@version 1.0.4
 """
 
 import os
-from PIL import Image
+from PIL import Image, ImageOps
 
 # ==============================================================================
 # КОНФИГУРАЦИЯ ПАРАМЕТРОВ СЖАТИЯ ГРАФИКИ
 # ==============================================================================
-MAX_WIDTH = 1280       # Верхний порог ширины фотографии (HD)
-MAX_HEIGHT = 720       # Верхний порог высоты фотографии (HD)
-WEBP_QUALITY = 75      # Качество сжатия WebP (настраиваемое: 70, 80, 85 и т.д.)
+MAX_WIDTH = 1280
+MAX_HEIGHT = 720
+WEBP_QUALITY = 75
+
 
 def compress_image_to_webp(source_path, target_path):
     """
-    Принимает сырое изображение, выполняет ресайз под рамки 1280x720 и сохраняет как WebP.
-    Возвращает True в случае успеха, False при любом системном сбое.
+    Создаёт WebP для исходных форматов.
+    Существующий WebP не перекодирует без необходимости; при превышении геометрии
+    уменьшает его на месте.
+    Возвращает True для нового файла, "PRESERVED" для WebP и False при ошибке.
     """
     filename = os.path.basename(source_path)
-    # ИСПРАВЛЕНО: берём строго индекс [1] (строку расширения) и только потом вызываем .lower()
     ext = os.path.splitext(filename)[1].lower()
+    is_webp = ext == ".webp"
+    temp_path = None
 
     try:
-        with Image.open(source_path) as img:
+        with Image.open(source_path) as opened:
+            orientation = opened.getexif().get(274, 1)
+            img = ImageOps.exif_transpose(opened)
+
             if img.mode in ("RGBA", "P") or img.mode != "RGB":
                 img = img.convert("RGB")
 
             orig_width, orig_height = img.size
+            needs_resize = orig_width > MAX_WIDTH or orig_height > MAX_HEIGHT
+            orientation_changed = orientation not in (None, 1)
 
-            # Пропорциональный ресайз под рамки 1280x720
-            if orig_width > MAX_WIDTH or orig_height > MAX_HEIGHT:
+            if is_webp and not needs_resize and not orientation_changed:
+                print(
+                    f"[КОМПРЕССОР ФОТО] WebP '{filename}' уже соответствует "
+                    f"ограничениям ({orig_width}x{orig_height}); оставляем без изменений."
+                )
+                return "PRESERVED"
+
+            if needs_resize:
                 ratio = min(MAX_WIDTH / orig_width, MAX_HEIGHT / orig_height)
-                new_width = int(orig_width * ratio)
-                new_height = int(orig_height * ratio)
-                
+                new_width = max(1, int(orig_width * ratio))
+                new_height = max(1, int(orig_height * ratio))
                 try:
                     resample_filter = Image.Resampling.LANCZOS
                 except AttributeError:
                     resample_filter = Image.ANTIALIAS
-
                 img = img.resize((new_width, new_height), resample_filter)
-                print(f"[КОМПРЕССОР ФОТО] Сжатие геометрии '{filename}': с {orig_width}x{orig_height} до {new_width}x{new_height}")
+                print(
+                    f"[КОМПРЕССОР ФОТО] Сжатие геометрии '{filename}': "
+                    f"с {orig_width}x{orig_height} до {new_width}x{new_height}"
+                )
             else:
-                print(f"[КОМПРЕССОР ФОТО] Геометрия '{filename}' в пределах нормы ({orig_width}x{orig_height}).")
+                print(
+                    f"[КОМПРЕССОР ФОТО] Геометрия '{filename}' в пределах нормы "
+                    f"({orig_width}x{orig_height})."
+                )
 
-            # Физическое сохранение в WebP. Теперь таргет указывает на чистый .webp, конфликтов нет
-            img.save(target_path, "WEBP", quality=WEBP_QUALITY)
-            
+            if is_webp:
+                # WebP сохраняем на месте только после успешной записи временного файла.
+                temp_path = source_path + ".tmp.webp"
+                img.save(temp_path, "WEBP", quality=WEBP_QUALITY)
+            else:
+                img.save(target_path, "WEBP", quality=WEBP_QUALITY)
+
+        if is_webp:
+            os.replace(temp_path, source_path)
+            temp_path = None
+            return "PRESERVED"
+
         return True
 
     except Exception as e:
-        print(f"[КОМПРЕССОР ФОТО] ⚠️ Ошибка оптимизации Pillow для '{filename}': {str(e)}")
+        print(
+            f"[КОМПРЕССОР ФОТО] Ошибка оптимизации Pillow для "
+            f"'{filename}': {str(e)}"
+        )
         return False
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)

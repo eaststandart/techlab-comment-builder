@@ -180,8 +180,10 @@ def analyze_and_process_media():
             
             if media_type == "photo":
                 try:
-                    if compress_image_to_webp(raw_path, target_path):
-                        if os.path.exists(raw_path): os.remove(raw_path)
+                    result = compress_image_to_webp(raw_path, target_path)
+                    if result:
+                        if result != "PRESERVED" and os.path.exists(raw_path):
+                            os.remove(raw_path)
                         final_transfer_list.append(target_name)
                     else:
                         final_transfer_list.append(raw_name)
@@ -190,8 +192,10 @@ def analyze_and_process_media():
                     final_transfer_list.append(raw_name)
             elif media_type == "video":
                 try:
-                    if compress_video_to_webm(raw_path, target_path):
-                        if os.path.exists(raw_path): os.remove(raw_path)
+                    result = compress_video_to_webm(raw_path, target_path)
+                    if result:
+                        if result != "PRESERVED" and os.path.exists(raw_path):
+                            os.remove(raw_path)
                         final_transfer_list.append(target_name)
                     else:
                         final_transfer_list.append(raw_name)
