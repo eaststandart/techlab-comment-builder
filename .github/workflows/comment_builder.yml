@@ -1,12 +1,12 @@
 # ==============================================================================
-# @module  comment-processor.yml
-# @about   Модуль автоматизации обработки и отправки комплектов комментариев.
-# @purpose Защита от параллельного запуска процессов и вызов диспетчера комментариев.
+# @module  comment_builder.yml
+# @about   Модуль автоматизации обработки комплектов комментариев.
+# @purpose Защита от параллельного запуска процессов и вызов главного диспетчера.
 # @author  TechLab
 # @version 1.0.0
 # ==============================================================================
 
-name: TechLab Comment Builder Processor
+name: TechLab Comment Builder
 
 on:
   push:
@@ -16,10 +16,9 @@ on:
 permissions:
   contents: write
 
-# Защищаем репозиторий от одновременной работы нескольких диспетчеров.
-# Текущий запущенный сервер последовательно обработает все прилетевшие комплекты.
+# Один запущенный диспетчер последовательно обработает все поступившие комплекты.
 concurrency:
-  group: comment-dispatcher
+  group: comment-builder
   cancel-in-progress: false
 
 jobs:
@@ -43,7 +42,7 @@ jobs:
       - name: Setup Fast FFmpeg Cache
         uses: AnimMouse/setup-ffmpeg@v1
 
-      - name: Run Comment Dispatcher
+      - name: Run Comment Builder
         env:
           MY_FINE_TOKEN: ${{ secrets.MY_FINE_TOKEN }}
-        run: python _actions/comment_dispatcher.py
+        run: python _actions/comment_builder.py

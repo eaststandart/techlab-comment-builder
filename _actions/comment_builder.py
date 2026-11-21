@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@module  comment_dispatcher.py
-@about   Модуль диспетчера буферного шлюза конструктора комментариев.
-@purpose Циклическая координация предварительной обработки манифестов, анализатора, отправки коммитов, уведомления основного сайта через GitHub API и ожидания очистки шлюза.
+@module  comment_builder.py
+@about   Главный диспетчер буферного шлюза конструктора комментариев.
+@purpose Управление очередью комплектов, ожиданием очистки _output, запуском обработки, Git-коммитами и уведомлением основного сайта.
 @author  TechLab
 @version 1.0.0
 """
 
 import os
-import sys
 import time
 import requests
 import subprocess
 
-# ==============================================================================
-# КОНФИГУРАЦИЯ ВНЕШНИХ ИНТЕРНЕТ-АДРЕСОВ GITHUB API
-# ==============================================================================
+from comment_processor import run_manifest_processor, run_manifest_analyzer
+
 SITE_API_URL = "https://api.github.com/repos/eaststandart/eaststandart.github.io/dispatches"
 CHECK_URL = "https://api.github.com/repos/eaststandart/techlab-comment-builder/contents/_output"
 REPOSITORY_BRANCH = "main"
 OUTPUT_CHECK_INTERVAL = 60
 MAX_OUTPUT_WAIT_SECONDS = 3600
 
+
 def run_command(command, check=True):
     return subprocess.run(command, check=check, capture_output=True, text=True)
+
 
 def get_output_media_files():
     output_dir = os.path.join(os.getcwd(), "_output")
@@ -32,10 +32,9 @@ def get_output_media_files():
         return []
     return sorted(f for f in os.listdir(output_dir) if f.endswith(".md"))
 
+
 def sync_repository():
-    """
-    Безопасное обновление локальной копии из сети без потери перенёсенных файлов.
-    """
+    """Безопасное обновление локальной копии из сети без потери перенесённых файлов."""
     print("[ДИСПЕТЧЕР] Синхронизация локальной копии с GitHub...")
     try:
         run_command(["git", "fetch", "origin", REPOSITORY_BRANCH])
@@ -45,6 +44,7 @@ def sync_repository():
     except Exception as err:
         print(f"[ДИСПЕТЧЕР] Ошибка синхронизации Git: {str(err)}")
         return False
+
 
 def commit_and_push_manifest_cleanup():
     """Сохраняет изменения _input, выполненные предварительной обработкой."""
@@ -70,38 +70,18 @@ def commit_and_push_manifest_cleanup():
         print(f"[ДИСПЕТЧЕР] Ошибка сохранения предварительной обработки: {str(err)}")
         return False
 
-def run_manifest_processor():
-    """Запускает предварительную обработку манифестов перед Analyzer."""
-    print("\n[ДИСПЕТЧЕР] Запуск модуля 'manifest_processor.py'...")
-    try:
-        result = subprocess.run(
-            [sys.executable, "_actions/manifest_processor.py"],
-            capture_output=True,
-            text=True
-        )
-        print(result.stdout)
-        if result.stderr:
-            print(result.stderr)
-        if result.returncode != 0:
-            print(f"[ДИСПЕТЧЕР] Manifest Processor завершился с кодом {result.returncode}.")
-            return False
-        return True
-    except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Ошибка запуска Manifest Processor: {str(err)}")
-        return False
 
 def commit_and_push_bundle(teacher_login):
     try:
         run_command(["git", "config", "--global", "user.name", "TechLab Media Bot"])
         run_command(["git", "config", "--global", "user.email", "media-bot@techlab.local"])
         run_command(["git", "add", "_input", "_output"])
-        
+
         diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"])
         if diff_check.returncode == 0:
             return False
 
         run_command(["git", "commit", "-m", f"передано: медиа-комплект {teacher_login} в _output"])
-        
         run_command(["git", "fetch", "origin", REPOSITORY_BRANCH])
         run_command(["git", "pull", "origin", REPOSITORY_BRANCH, "--rebase"])
         run_command(["git", "push", "origin", REPOSITORY_BRANCH])
@@ -109,6 +89,7 @@ def commit_and_push_bundle(teacher_login):
     except Exception as err:
         print(f"[ДИСПЕТЧЕР] Ошибка выполнения Git: {str(err)}")
         return False
+
 
 def notify_site(fine_token):
     if not fine_token:
@@ -129,6 +110,7 @@ def notify_site(fine_token):
     except Exception as err:
         print(f"[ДИСПЕТЧЕР] Исключение при отправке сигнала: {str(err)}")
         return False
+
 
 def wait_until_output_empty(fine_token):
     start_time = time.time()
@@ -154,7 +136,7 @@ def wait_until_output_empty(fine_token):
         try:
             response = requests.get(CHECK_URL, headers=headers, timeout=30)
             if response.status_code >= 500:
-                print(f"[ДИСПЕТЧЕР] ❌ Ошибка сервера GitHub API: {response.status_code}. Пауза 60 сек.")
+                print(f"[ДИСПЕТЧЕР] Ошибка сервера GitHub API: {response.status_code}. Пауза 60 сек.")
                 time.sleep(60)
                 continue
 
@@ -169,49 +151,25 @@ def wait_until_output_empty(fine_token):
                 print("[ДИСПЕТЧЕР] Папка _output опустела.")
                 return True
             else:
-                print(f"[ДИСПЕТЧЕР] ⚠️ Нетипичный ответ API: {response.status_code}. Пауза 60 сек.")
+                print(f"[ДИСПЕТЧЕР] Нетипичный ответ API: {response.status_code}. Пауза 60 сек.")
         except Exception as err:
-            print(f"[ДИСПЕТЧЕР] ❌ Сетевой сбой API: {str(err)}. Пауза 60 сек.")
+            print(f"[ДИСПЕТЧЕР] Сетевой сбой API: {str(err)}. Пауза 60 сек.")
 
         time.sleep(OUTPUT_CHECK_INTERVAL)
 
-def run_manifest_analyzer():
-    print("\n[ДИСПЕТЧЕР] Запуск модуля 'manifest-analyzer.py'...")
-    try:
-        result = subprocess.run([sys.executable, "_actions/manifest-analyzer.py"], capture_output=True, text=True)
-        print(result.stdout)
-
-        if result.returncode != 0:
-            if result.stderr:
-                print(result.stderr)
-            print(f"[ДИСПЕТЧЕР] Manifest Analyzer завершился с кодом {result.returncode}.")
-            return "ERROR_ANALYZER"
-
-        for line in result.stdout.splitlines():
-            if "Финальный статус работы модуля:" in line:
-                analyzer_status = line.split(":")[-1].strip()
-                if analyzer_status:
-                    return analyzer_status
-                break
-
-        print("[ДИСПЕТЧЕР] Manifest Analyzer не вернул ожидаемый финальный статус.")
-        return "ERROR_ANALYZER"
-    except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Ошибка запуска Manifest Analyzer: {str(err)}")
-        return "ERROR_ANALYZER"
 
 def run_control_pipeline():
-    print("\n=== [МОДУЛЬ COMMENT-DISPATCHER] ЗАПУСК ДИСПЕТЧЕРА КОНВЕЙЕРА ===")
+    print("\n=== [МОДУЛЬ COMMENT-BUILDER] ЗАПУСК ДИСПЕТЧЕРА КОНВЕЙЕРА ===")
     output_dir = os.path.join(os.getcwd(), "_output")
     input_dir = os.path.join(os.getcwd(), "_input")
 
     if not os.path.exists(output_dir) or not os.path.exists(input_dir):
-        print("[ДИСПЕТЧЕР] ❌ Ошибка: целевые директории не найдены.")
+        print("[ДИСПЕТЧЕР] Ошибка: целевые директории не найдены.")
         return
 
     fine_token = os.environ.get("MY_FINE_TOKEN")
     if not fine_token:
-        print("[ДИСПЕТЧЕР] ❌ Ошибка: Ключ MY_FINE_TOKEN не найден.")
+        print("[ДИСПЕТЧЕР] Ошибка: Ключ MY_FINE_TOKEN не найден.")
         return
 
     bundle_counter = 0
@@ -231,6 +189,7 @@ def run_control_pipeline():
         if not run_manifest_processor():
             return
 
+        # Отдельно фиксируем изменения предварительной обработки до запуска анализатора.
         if not commit_and_push_manifest_cleanup():
             return
 
@@ -256,13 +215,14 @@ def run_control_pipeline():
             return
 
         if not notify_site(fine_token):
-            print("[ДИСПЕТЧЕР] ⚠️ Предупреждение: Сигнал на сайт не отправлен.")
+            print("[ДИСПЕТЧЕР] Предупреждение: Сигнал на сайт не отправлен.")
 
         if not wait_until_output_empty(fine_token):
             return
 
         print("[ДИСПЕТЧЕР] Папка _output опустела. Переходим к проверке папки _input на следующий комплект.")
         continue
+
 
 if __name__ == "__main__":
     run_control_pipeline()
