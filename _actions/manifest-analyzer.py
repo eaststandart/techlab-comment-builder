@@ -250,8 +250,8 @@ def analyze_and_process_media():
                 meta_lines = ["---"]
                 for k, v in meta.items():
                     meta_lines.append(f"{k}: {v}")
-                meta_lines.append("---\\n\\n")
-                final_md_content = "\\n".join(meta_lines) + updated_body_text
+                meta_lines.append("---\n\n")
+                final_md_content = "\n".join(meta_lines) + updated_body_text
 
                 final_md_name = f"{base_filename}.md"
                 staged_md_path = os.path.join(work_dir, final_md_name)
