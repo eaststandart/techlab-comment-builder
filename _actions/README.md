@@ -62,85 +62,84 @@
 
 ### Контур сквозной цепочки модулей
 
-Схема показывает фактический порядок вызовов и передачу управления между модулями. Повторные попытки относятся только к анализатору: предварительная обработка и сохранение ее изменений в Git выполняются перед первым запуском анализатора.
+Схема показывает порядок вызова Python-модулей и переходы между этапами обработки. Повторный запуск выполняется только для `manifest-analyzer.py`.
 
-~~~text
-                 GitHub Actions
-                       |
-                       v
-              comment_builder.py
-               Главный диспетчер
-                       |
-                       v
-             comment_processor.py
-                       |
-                       v
-             manifest_processor.py
-          Предварительная обработка _input
-                       |
-                       v
-              comment_builder.py
-          Git commit/push изменений _input
-                       |
-                       v
-             comment_processor.py
-                       |
-                       v
-             manifest-analyzer.py
-           Анализ и подготовка комплекта
-                       |
-                       v
-              comment_renamer.py
-             Стандартизация имен файлов
-                       |
-                       v
-          Обработка вложений по типу файла
-                 /             \\
-                v               v
-   media_compressor_photo.py  media_compressor_video.py
-        Фото -> WebP              Видео -> WebM
-                 \\             /
-                  v           v
-                 Проверка результатов
-                       |
-          +------------+-------------+
-          |            |             |
-          v            v             v
-       Успех      FILE_CORRUPTED    RETRY
-          |        Остановка         |
-          |        без повторов      v
-          |                 comment_builder.py
-          |                 Получает статус RETRY
-          |                          |
-          |                          v
-          |                 comment_processor.py
-          |                          |
-          |                          v
-          |                 manifest-analyzer.py
-          |                 Повторный запуск
-          |                 (до 4 запусков всего;
-          |                 задержки 60 / 180 / 300 сек.)
-          |                          |
-          |                          +----> Проверка результатов
+```text
+                 [GitHub Actions]
+                        |
+                        ▼
+              [comment_builder.py]
+                 Главный диспетчер
+                        |
+                        ▼
+             [comment_processor.py]
+                        |
+                        ▼
+             [manifest_processor.py]
+             Предварительная обработка
+                        |
+                        ▼
+              [comment_builder.py]
+             Git commit/push изменений
+                        |
+                        ▼
+             [comment_processor.py]
+                        |
+                        ▼
+             [manifest-analyzer.py]
+              Анализ и подготовка комплекта
+                        |
+                        ▼
+              [comment_renamer.py]
+              Стандартизация имен файлов
+                        |
+                        ▼
+           Обработка вложений по типу файла
+                        |
+             ┌──────────┴──────────┐
+             ▼                     ▼
+ [media_compressor_photo.py] [media_compressor_video.py]
+          Фото → WebP              Видео → WebM
+             └──────────┬──────────┘
+                        ▼
+               Проверка результата
+                        |
+          ┌─────────────┼──────────────┐
+          ▼             ▼              ▼
+        Успех     FILE_CORRUPTED     RETRY
+          |        Остановка           |
+          |        без повторов        ▼
+          |                   [comment_builder.py]
+          |                    Получает статус RETRY
+          |                             |
+          |                             ▼
+          |                  [comment_processor.py]
+          |                             |
+          |                             ▼
+          |                  [manifest-analyzer.py]
+          |                    Повторный запуск
+          |                    До 4 запусков всего
+          |                    Паузы: 60 / 180 / 300 сек.
+          |                             |
+          |                             └──────────────► Проверка результата
           |
-          v
-       _output/
+          ▼
+       [_output/]
           |
-          v
-   comment_builder.py
-   Git commit/push комплекта
+          ▼
+   [comment_builder.py]
+   Git commit/push готового комплекта
           |
-          v
-   comment-notify
+          ▼
+     [comment-notify]
    Уведомление сайта Творческой лаборатории
           |
-          v
+          ▼
    Ожидание очистки _output/
           |
-          v
+          ▼
    Следующий комплект из _input/
-~~~~~~
-
+```
 ### Примечания к последовательности
 
 * `comment_builder.py` вызывает функции запуска из `comment_processor.py`: сначала для `manifest_processor.py`, затем для `manifest-analyzer.py`.
