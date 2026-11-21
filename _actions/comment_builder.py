@@ -13,8 +13,8 @@ import time
 import requests
 import subprocess
 
-MAX_BUNDLE_ATTEMPTS = 3
-BUNDLE_RETRY_DELAY_SECONDS = 5
+MAX_BUNDLE_ATTEMPTS = 4
+BUNDLE_RETRY_DELAYS_SECONDS = (60, 180, 300)
 
 from comment_processor import run_manifest_processor, run_manifest_analyzer
 
@@ -203,12 +203,13 @@ def run_control_pipeline():
                 break
 
             if attempt < MAX_BUNDLE_ATTEMPTS:
+                retry_delay = BUNDLE_RETRY_DELAYS_SECONDS[attempt - 1]
                 print(
                     f"[ДИСПЕТЧЕР] Комплект не готов. Повторная попытка "
                     f"{attempt + 1}/{MAX_BUNDLE_ATTEMPTS} через "
-                    f"{BUNDLE_RETRY_DELAY_SECONDS} сек."
+                    f"{retry_delay} сек."
                 )
-                time.sleep(BUNDLE_RETRY_DELAY_SECONDS)
+                time.sleep(retry_delay)
             else:
                 print(
                     f"[ДИСПЕТЧЕР] Комплект не удалось обработать за "
