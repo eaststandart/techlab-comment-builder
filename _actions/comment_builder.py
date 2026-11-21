@@ -99,13 +99,13 @@ def notify_site(fine_token):
         "Authorization": f"token {fine_token}",
         "X-GitHub-Api-Version": "2022-11-28"
     }
-    payload = {"event_type": "media-notify"}
+    payload = {"event_type": "comment-notify"}
     try:
         response = requests.post(SITE_API_URL, json=payload, headers=headers, timeout=30)
         if response.status_code != 204:
             print(f"[ДИСПЕТЧЕР] Ошибка отправки сигнала. Код: {response.status_code}")
             return False
-        print("[ДИСПЕТЧЕР] Сигнал передан в репозиторий eaststandart.github.io.")
+        print("[ДИСПЕТЧЕР] Сигнал comment-notify передан в репозиторий eaststandart.github.io.")
         return True
     except Exception as err:
         print(f"[ДИСПЕТЧЕР] Исключение при отправке сигнала: {str(err)}")
