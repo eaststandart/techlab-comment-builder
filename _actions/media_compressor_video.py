@@ -48,26 +48,12 @@ def get_video_geometry(path):
     return width, height
 
 
-def _print_mode_result(label, size, source_size):
-    """Выводит размер результата режима и степень сжатия относительно оригинала."""
+def _print_mode_result(label, size):
+    """Выводит только размер файла после соответствующего режима."""
     if size == float("inf"):
         print(f"[КОМПРЕССОР ВИДЕО] {label}: выходной файл не создан.")
-        return
-
-    print(f"[КОМПРЕССОР ВИДЕО] {label}: {size} байт.")
-    difference = source_size - size
-    if source_size > 0 and difference >= 0:
-        percent = difference / source_size * 100
-        print(
-            f"[КОМПРЕССОР ВИДЕО] {label}: сжатие на "
-            f"{difference} байт ({percent:.1f}%)."
-        )
-    elif source_size > 0:
-        percent = abs(difference) / source_size * 100
-        print(
-            f"[КОМПРЕССОР ВИДЕО] {label}: размер увеличился на "
-            f"{abs(difference)} байт ({percent:.1f}%)."
-        )
+    else:
+        print(f"[КОМПРЕССОР ВИДЕО] {label}: {size} байт.")
 
 
 def compress_video_to_webm(source_path, target_path):
@@ -112,8 +98,7 @@ def compress_video_to_webm(source_path, target_path):
             )
 
         source_size = os.path.getsize(source_path)
-        print(f"[КОМПРЕССОР ВИДЕО] Начинаем двухрежимную обработку '{filename}'...")
-        print(f"[КОМПРЕССОР ВИДЕО] Размер исходного файла: {source_size} байт.")
+        print(f"[КОМПРЕССОР ВИДЕО] Файл: {filename} ({source_size} байт).")
 
         for temp_file in (tmp_crf_path, tmp_bit_path):
             if os.path.exists(temp_file):
@@ -123,22 +108,19 @@ def compress_video_to_webm(source_path, target_path):
             "ffmpeg", "-i", source_path,
             "-c:v", "libvpx-vp9", "-crf", "25", "-b:v", "0"
         ] + geo_audio_opts + [tmp_crf_path]
-        print("[КОМПРЕССОР ВИДЕО] Запуск режима качества CRF 25...")
         subprocess.run(cmd_crf, check=True, capture_output=True)
 
         cmd_bit = [
             "ffmpeg", "-i", source_path,
             "-c:v", "libvpx-vp9", "-b:v", "700k"
         ] + geo_audio_opts + [tmp_bit_path]
-        print("[КОМПРЕССОР ВИДЕО] Запуск режима битрейта 700 kbps...")
         subprocess.run(cmd_bit, check=True, capture_output=True)
 
         size_crf = os.path.getsize(tmp_crf_path) if os.path.exists(tmp_crf_path) else float("inf")
         size_bit = os.path.getsize(tmp_bit_path) if os.path.exists(tmp_bit_path) else float("inf")
 
-        print(f"[КОМПРЕССОР ВИДЕО] Результаты теста веса для '{filename}':")
-        _print_mode_result("Режим качества (CRF 25)", size_crf, source_size)
-        _print_mode_result("Режим битрейта (700 kbps)", size_bit, source_size)
+        _print_mode_result("Режим качества (CRF 25)", size_crf)
+        _print_mode_result("Режим битрейта (700 kbps)", size_bit)
 
         if size_crf == float("inf") and size_bit == float("inf"):
             raise RuntimeError("Ни один режим FFmpeg не создал выходной файл.")
@@ -147,18 +129,16 @@ def compress_video_to_webm(source_path, target_path):
             winner = tmp_crf_path
             loser = tmp_bit_path
             difference = size_bit - size_crf
-            print(
-                f"[КОМПРЕССОР ВИДЕО] Выбран режим CRF 25: "
-                f"файл меньше на {difference} байт."
-            )
+            compression = (source_size - size_crf) / source_size * 100 if source_size > 0 else 0
+            result_text = f"сжатие {compression:.1f}%" if compression >= 0 else f"увеличение размера {abs(compression):.1f}%"
+            print(f"[КОМПРЕССОР ВИДЕО] Выбран режим CRF 25 ({result_text}).")
         else:
             winner = tmp_bit_path
             loser = tmp_crf_path
             difference = size_crf - size_bit
-            print(
-                f"[КОМПРЕССОР ВИДЕО] Выбран режим 700 kbps: "
-                f"файл меньше на {difference} байт."
-            )
+            compression = (source_size - size_bit) / source_size * 100 if source_size > 0 else 0
+            result_text = f"сжатие {compression:.1f}%" if compression >= 0 else f"увеличение размера {abs(compression):.1f}%"
+            print(f"[КОМПРЕССОР ВИДЕО] Выбран режим 700 kbps ({result_text}).")
 
         os.replace(winner, target_path)
         if os.path.exists(loser):
