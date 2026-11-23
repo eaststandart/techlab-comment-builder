@@ -3,7 +3,7 @@
 """
 @module  manifest_processor.py
 @about   Модуль предварительной обработки манифестов и вложений.
-@purpose Проверяет поле published в манифестах _input репозитория eaststandart/techlab-comment-builder, определяет связанные вложения и удаляет комплекты, помеченные к удалению или не предназначенные для обработки, а также бесхозные файлы.
+@purpose Проверяет поле published в манифестах _input репозитория eaststandart/techlab-comment-builder, сохраняет манифесты и вложения готовых комплектов и черновиков, удаляет комплекты с published=delete или некорректным значением, а также бесхозные файлы.
 @author  TechLab
 @version 1.0.0
 """
