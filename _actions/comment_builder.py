@@ -172,7 +172,7 @@ def run_control_pipeline():
 
     fine_token = os.environ.get("MY_FINE_TOKEN")
     if not fine_token:
-        print("[comment_builder] ❌ Ошибка: Ключ MY_FINE_TOKEN не найден.")
+        print("[comment_builder] Ошибка: Ключ MY_FINE_TOKEN не найден.")
         return
 
     bundle_counter = 0
