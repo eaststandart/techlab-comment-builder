@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 @module  comment_processor.py
-@about   Модуль обработки комплектов конструктора комментариев.
-@purpose Запуск предварительной обработки манифестов и анализатора с сохранением действующей последовательности специализированных операций.
+@about   Модуль запуска специализированных этапов обработки комплектов.
+@purpose Последовательно запускает manifest_processor.py и manifest-analyzer.py для комплектов в репозитории eaststandart/techlab-comment-builder, передаёт вывод дочерних процессов и контролирует время выполнения анализатора.
 @author  TechLab
 @version 1.0.0
 """
@@ -20,7 +20,7 @@ ANALYZER_TIMEOUT_SECONDS = 15 * 60
 
 def run_manifest_processor():
     """Запускает предварительную обработку манифестов перед Analyzer."""
-    print("\n[ОБРАБОТЧИК] Запуск модуля 'manifest_processor.py'...")
+    print("\n[comment_processor] Запуск модуля 'manifest_processor.py'...")
     try:
         result = subprocess.run(
             [sys.executable, "_actions/manifest_processor.py"],
@@ -31,11 +31,11 @@ def run_manifest_processor():
         if result.stderr:
             print(result.stderr)
         if result.returncode != 0:
-            print(f"[ОБРАБОТЧИК] Manifest Processor завершился с кодом {result.returncode}.")
+            print(f"[comment_processor] Manifest Processor завершился с кодом {result.returncode}.")
             return False
         return True
     except Exception as err:
-        print(f"[ОБРАБОТЧИК] Ошибка запуска Manifest Processor: {str(err)}")
+        print(f"[comment_processor] Ошибка запуска Manifest Processor: {str(err)}")
         return False
 
 
@@ -62,9 +62,9 @@ def _stop_analyzer_process(process):
 
 def run_manifest_analyzer():
     """Запускает анализатор с потоковым выводом и ограничением времени."""
-    print("\n[ОБРАБОТЧИК] Запуск модуля 'manifest-analyzer.py'...")
+    print("\n[comment_processor] Запуск модуля 'manifest-analyzer.py'...")
     print(
-        f"[ОБРАБОТЧИК] Тайм-аут одной попытки анализатора: "
+        f"[comment_processor] Тайм-аут одной попытки анализатора: "
         f"{ANALYZER_TIMEOUT_SECONDS // 60} минут."
     )
 
@@ -96,7 +96,7 @@ def run_manifest_analyzer():
             return_code = process.wait(timeout=ANALYZER_TIMEOUT_SECONDS)
         except subprocess.TimeoutExpired:
             print(
-                f"[ОБРАБОТЧИК] Превышен тайм-аут {ANALYZER_TIMEOUT_SECONDS // 60} минут. "
+                f"[comment_processor] Превышен тайм-аут {ANALYZER_TIMEOUT_SECONDS // 60} минут. "
                 "Завершаем анализатор и его дочерние процессы."
             )
             _stop_analyzer_process(process)
@@ -106,7 +106,7 @@ def run_manifest_analyzer():
         output_thread.join()
 
         if return_code != 0:
-            print(f"[ОБРАБОТЧИК] Manifest Analyzer завершился с кодом {return_code}.")
+            print(f"[comment_processor] Manifest Analyzer завершился с кодом {return_code}.")
             return "ERROR_ANALYZER"
 
         for line in output_lines:
@@ -117,11 +117,11 @@ def run_manifest_analyzer():
                     return analyzer_status
                 break
 
-        print("[ОБРАБОТЧИК] Manifest Analyzer не вернул ожидаемый финальный статус.")
+        print("[comment_processor] Manifest Analyzer не вернул ожидаемый финальный статус.")
         return "ERROR_ANALYZER"
 
     except Exception as err:
         if process is not None and process.poll() is None:
             _stop_analyzer_process(process)
-        print(f"[ОБРАБОТЧИК] Ошибка запуска Manifest Analyzer: {str(err)}")
+        print(f"[comment_processor] Ошибка запуска Manifest Analyzer: {str(err)}")
         return "ERROR_ANALYZER"
