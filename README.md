@@ -1,7 +1,7 @@
 [![Репозиторий](https://img.shields.io/badge/GitHub-techlab--comment--builder-blue?style=flat-square&logo=github)](https://github.com/eaststandart/techlab-comment-builder)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/eaststandart/techlab-comment-builder/comment_builder.yml?label=Обработка&style=flat-square)](https://github.com/eaststandart/techlab-comment-builder/actions/workflows/comment_builder.yml)
 
-# Система комментирования деятельности
+# Система автоматизации комментариев
 
 Этот репозиторий выполняет роль изолированного буферного шлюза и сервера автоматической обработки комментариев с фотографиями и видеоматериалами для дискуссий детско-юношеского инженерного клуба во Владивостоке. Проект развернут на платформе [Творческой лаборатории познавательного развития](https://eaststandart.github.io/).
 
