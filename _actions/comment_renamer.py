@@ -18,7 +18,6 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
     # Извлекаем метаданные для сборки стандартизированного префикса
     date_str = meta.get("date", "").strip()
     discussion = meta.get("discussion_number", "0").strip()
-    comment_id = meta.get("comment_id", "").strip()
     teacher = meta.get("teacher", "").strip()
     
     # Резервный подбор логина для веб-интерфейса
@@ -29,11 +28,8 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
     # Генерируем единый секундный штамп для всего пакета
     timestamp = int(time.time())
 
-    # Сборка базового префикса со штампом строго ПОСЛЕ даты через дефис
-    if comment_id:
-        base_filename = f"{date_str}-{timestamp}_discussion_{discussion}_comment_{comment_id}_{teacher}"
-    else:
-        base_filename = f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}"
+    # Сборка базового префикса без идентификатора комментария
+    base_filename = f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}"
 
     updated_body_text = body_text
     final_transfer_list = []
