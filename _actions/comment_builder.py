@@ -38,14 +38,14 @@ def get_output_media_files():
 
 def sync_repository():
     """Безопасное обновление локальной копии из сети без потери перенесённых файлов."""
-    print("[ДИСПЕТЧЕР] Синхронизация локальной копии с GitHub...")
+    print("[comment_builder] Синхронизация локальной копии с GitHub...")
     try:
         run_command(["git", "fetch", "origin", REPOSITORY_BRANCH])
         run_command(["git", "pull", "origin", REPOSITORY_BRANCH, "--rebase"])
-        print("[ДИСПЕТЧЕР] Локальная копия синхронизирована.")
+        print("[comment_builder] Локальная копия синхронизирована.")
         return True
     except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Ошибка синхронизации Git: {str(err)}")
+        print(f"[comment_builder] Ошибка синхронизации Git: {str(err)}")
         return False
 
 
@@ -58,7 +58,7 @@ def commit_and_push_manifest_cleanup():
 
         diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"])
         if diff_check.returncode == 0:
-            print("[ДИСПЕТЧЕР] Предварительная обработка не изменила _input.")
+            print("[comment_builder] Предварительная обработка не изменила _input.")
             return True
         if diff_check.returncode != 1:
             raise RuntimeError("Не удалось проверить изменения Git.")
@@ -67,10 +67,10 @@ def commit_and_push_manifest_cleanup():
         run_command(["git", "fetch", "origin", REPOSITORY_BRANCH])
         run_command(["git", "pull", "origin", REPOSITORY_BRANCH, "--rebase"])
         run_command(["git", "push", "origin", REPOSITORY_BRANCH])
-        print("[ДИСПЕТЧЕР] Изменения предварительной обработки сохранены в GitHub.")
+        print("[comment_builder] Изменения предварительной обработки сохранены в GitHub.")
         return True
     except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Ошибка сохранения предварительной обработки: {str(err)}")
+        print(f"[comment_builder] Ошибка сохранения предварительной обработки: {str(err)}")
         return False
 
 
@@ -90,7 +90,7 @@ def commit_and_push_bundle(teacher_login):
         run_command(["git", "push", "origin", REPOSITORY_BRANCH])
         return True
     except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Ошибка выполнения Git: {str(err)}")
+        print(f"[comment_builder] Ошибка выполнения Git: {str(err)}")
         return False
 
 
@@ -106,12 +106,12 @@ def notify_site(fine_token):
     try:
         response = requests.post(SITE_API_URL, json=payload, headers=headers, timeout=30)
         if response.status_code != 204:
-            print(f"[ДИСПЕТЧЕР] Ошибка отправки сигнала. Код: {response.status_code}")
+            print(f"[comment_builder] Ошибка отправки сигнала. Код: {response.status_code}")
             return False
-        print("[ДИСПЕТЧЕР] Сигнал comment-notify передан в репозиторий eaststandart.github.io.")
+        print("[comment_builder] Сигнал comment-notify передан в репозиторий eaststandart.github.io.")
         return True
     except Exception as err:
-        print(f"[ДИСПЕТЧЕР] Исключение при отправке сигнала: {str(err)}")
+        print(f"[comment_builder] Исключение при отправке сигнала: {str(err)}")
         return False
 
 
@@ -129,17 +129,17 @@ def wait_until_output_empty(fine_token):
     while True:
         check_counter += 1
         elapsed = int(time.time() - start_time)
-        print(f"\n[ДИСПЕТЧЕР] Проверка №{check_counter} (Время: {elapsed} сек.)")
-        print("[ДИСПЕТЧЕР] Делаем запрос к API techlab-comment-builder для проверки удаления файлов.")
+        print(f"\n[comment_builder] Проверка №{check_counter} (Время: {elapsed} сек.)")
+        print("[comment_builder] Делаем запрос к API techlab-comment-builder для проверки удаления файлов.")
 
         if elapsed >= MAX_OUTPUT_WAIT_SECONDS:
-            print("[ДИСПЕТЧЕР] Превышено максимальное время ожидания очистки _output.")
+            print("[comment_builder] Превышено максимальное время ожидания очистки _output.")
             return False
 
         try:
             response = requests.get(CHECK_URL, headers=headers, timeout=30)
             if response.status_code >= 500:
-                print(f"[ДИСПЕТЧЕР] ❌ Ошибка сервера GitHub API: {response.status_code}. Пауза 60 сек.")
+                print(f"[comment_builder] ❌ Ошибка сервера GitHub API: {response.status_code}. Пауза 60 сек.")
                 time.sleep(60)
                 continue
 
@@ -147,45 +147,45 @@ def wait_until_output_empty(fine_token):
                 output_contents = response.json()
                 live_files = [item.get("name", "") for item in output_contents if item.get("name", "").endswith(".md")]
                 if not live_files:
-                    print("[ДИСПЕТЧЕР] Папка _output опустела.")
+                    print("[comment_builder] Папка _output опустела.")
                     return True
-                print(f"[ДИСПЕТЧЕР] Директория содержит файлы ({len(live_files)} шт.): {live_files}")
+                print(f"[comment_builder] Директория содержит файлы ({len(live_files)} шт.): {live_files}")
             elif response.status_code == 404:
-                print("[ДИСПЕТЧЕР] Папка _output опустела.")
+                print("[comment_builder] Папка _output опустела.")
                 return True
             else:
-                print(f"[ДИСПЕТЧЕР] ⚠️ Нетипичный ответ API: {response.status_code}. Пауза 60 сек.")
+                print(f"[comment_builder] ⚠️ Нетипичный ответ API: {response.status_code}. Пауза 60 сек.")
         except Exception as err:
-            print(f"[ДИСПЕТЧЕР] ❌ Сетевой сбой API: {str(err)}. Пауза 60 сек.")
+            print(f"[comment_builder] ❌ Сетевой сбой API: {str(err)}. Пауза 60 сек.")
 
         time.sleep(OUTPUT_CHECK_INTERVAL)
 
 
 def run_control_pipeline():
-    print("\n=== [МОДУЛЬ COMMENT-BUILDER] ЗАПУСК ДИСПЕТЧЕРА КОНВЕЙЕРА ===")
+    print("\n[comment_builder] Запуск диспетчера конвейера.")
     output_dir = os.path.join(os.getcwd(), "_output")
     input_dir = os.path.join(os.getcwd(), "_input")
 
     if not os.path.exists(output_dir) or not os.path.exists(input_dir):
-        print("[ДИСПЕТЧЕР] ❌ Ошибка: целевые директории не найдены.")
+        print("[comment_builder] ❌ Ошибка: целевые директории не найдены.")
         return
 
     fine_token = os.environ.get("MY_FINE_TOKEN")
     if not fine_token:
-        print("[ДИСПЕТЧЕР] ❌ Ошибка: Ключ MY_FINE_TOKEN не найден.")
+        print("[comment_builder] ❌ Ошибка: Ключ MY_FINE_TOKEN не найден.")
         return
 
     bundle_counter = 0
     while True:
         bundle_counter += 1
-        print(f"\n--- [ДИСПЕТЧЕР] ЦИКЛ ОБРАБОТКИ КОМПЛЕКТОВ №{bundle_counter} ---")
+        print(f"\n--- [comment_builder] ЦИКЛ ОБРАБОТКИ КОМПЛЕКТОВ №{bundle_counter} ---")
 
         if not sync_repository():
             return
 
         output_files = get_output_media_files()
         if output_files:
-            print(f"[ДИСПЕТЧЕР] В _output файлы прошлых смен: {output_files}. Ожидаем очистки.")
+            print(f"[comment_builder] В _output файлы прошлых смен: {output_files}. Ожидаем очистки.")
             if not wait_until_output_empty(fine_token) or not sync_repository():
                 return
 
@@ -200,7 +200,7 @@ def run_control_pipeline():
         for attempt in range(1, MAX_BUNDLE_ATTEMPTS + 1):
             analyzer_status = run_manifest_analyzer()
             if analyzer_status.startswith("FILE_CORRUPTED|"):
-                print(f"[ДИСПЕТЧЕР] Обнаружен повреждённый файл. Повторы не выполняются: {analyzer_status}")
+                print(f"[comment_builder] Обнаружен повреждённый файл. Повторы не выполняются: {analyzer_status}")
                 raise SystemExit(1)
 
             if not analyzer_status.startswith("RETRY|"):
@@ -209,21 +209,21 @@ def run_control_pipeline():
             if attempt < MAX_BUNDLE_ATTEMPTS:
                 retry_delay = BUNDLE_RETRY_DELAYS_SECONDS[attempt - 1]
                 print(
-                    f"[ДИСПЕТЧЕР] Комплект не готов. Повторная попытка "
+                    f"[comment_builder] Комплект не готов. Повторная попытка "
                     f"{attempt + 1}/{MAX_BUNDLE_ATTEMPTS} через "
                     f"{retry_delay} сек."
                 )
                 time.sleep(retry_delay)
             else:
                 print(
-                    f"[ДИСПЕТЧЕР] Комплект не удалось обработать за "
+                    f"[comment_builder] Комплект не удалось обработать за "
                     f"{MAX_BUNDLE_ATTEMPTS} попытки. Последняя причина: {analyzer_status}"
                 )
                 raise SystemExit(1)
 
 
         if analyzer_status in ("NO_BUNDLE_READY", "NO_FILES"):
-            print("[ДИСПЕТЧЕР] Готовых комплектов в директории _input не обнаружено. Процесс контроля успешно завершён.")
+            print("[comment_builder] Готовых комплектов в директории _input не обнаружено. Процесс контроля успешно завершён.")
             return
 
         if analyzer_status == "OUTPUT_BUSY":
@@ -232,22 +232,22 @@ def run_control_pipeline():
             continue
 
         if analyzer_status.startswith("ERROR_") or not analyzer_status.startswith("SUCCESS_"):
-            print(f"[ДИСПЕТЧЕР] Ошибка или неизвестный статус Manifest Analyzer: {analyzer_status}")
+            print(f"[comment_builder] Ошибка или неизвестный статус Manifest Analyzer: {analyzer_status}")
             raise SystemExit(1)
 
         teacher_login = analyzer_status.replace("SUCCESS_", "", 1).strip()
-        print(f"[ДИСПЕТЧЕР] Обнаружен готовый комплект для преподавателя: '{teacher_login}'")
+        print(f"[comment_builder] Обнаружен готовый комплект для преподавателя: '{teacher_login}'")
 
         if not commit_and_push_bundle(teacher_login):
             return
 
         if not notify_site(fine_token):
-            print("[ДИСПЕТЧЕР] ⚠️ Предупреждение: Сигнал на сайт не отправлен.")
+            print("[comment_builder] ⚠️ Предупреждение: Сигнал на сайт не отправлен.")
 
         if not wait_until_output_empty(fine_token):
             return
 
-        print("[ДИСПЕТЧЕР] Папка _output опустела. Переходим к проверке папки _input на следующий комплект.")
+        print("[comment_builder] Папка _output опустела. Переходим к проверке папки _input на следующий комплект.")
         continue
 
 
