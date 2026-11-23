@@ -86,7 +86,7 @@ def standard_bundle_files(manifest_name, input_files):
 
 
 def process_manifests():
-    print("\n=== [manifest_processor] ОБРАБОТКА _INPUT ===")
+    print("\n[manifest_processor] Обработка _input.")
 
     if not os.path.isdir(INPUT_DIR):
         print(f"[manifest_processor] Ошибка: каталог не найден: {INPUT_DIR}")
