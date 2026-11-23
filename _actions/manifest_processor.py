@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 @module  manifest_processor.py
-@about   Предварительная обработка манифестов и файлов в _input.
-@purpose Проверка published, сохранение связанных вложений и удаление неподготовленных комплектов и бесхозных файлов.
+@about   Модуль предварительной обработки манифестов и вложений.
+@purpose Проверяет поле published в манифестах _input репозитория eaststandart/techlab-comment-builder, определяет связанные вложения и удаляет комплекты, помеченные к удалению или не предназначенные для обработки, а также бесхозные файлы.
 @author  TechLab
 @version 1.0.0
 """
@@ -89,7 +89,7 @@ def process_manifests():
     print("\n=== [МОДУЛЬ MANIFEST-PROCESSOR] ОБРАБОТКА _INPUT ===")
 
     if not os.path.isdir(INPUT_DIR):
-        print(f"[МАНИФЕСТ] Ошибка: каталог не найден: {INPUT_DIR}")
+        print(f"[manifest_processor] Ошибка: каталог не найден: {INPUT_DIR}")
         return 1
 
     input_files = {
@@ -115,14 +115,14 @@ def process_manifests():
     for name, data in manifests.items():
         status = data["status"]
         if status == "true":
-            print(f"[МАНИФЕСТ] Найден: {name} | published=true  | передать manifest-analyzer.py")
+            print(f"[manifest_processor] Найден: {name} | published=true  | передать manifest-analyzer.py")
         elif status == "false":
-            print(f"[МАНИФЕСТ] Найден: {name} | published=false | пропустить черновик")
+            print(f"[manifest_processor] Найден: {name} | published=false | пропустить черновик")
         elif status == "delete":
-            print(f"[МАНИФЕСТ] Найден: {name} | published=delete | удалить с вложениями")
+            print(f"[manifest_processor] Найден: {name} | published=delete | удалить с вложениями")
         else:
-            print(f"[МАНИФЕСТ] Найден: {name} | published=некорректно | удалить с вложениями")
-            print(f"[МАНИФЕСТ] Причина удаления: {data['reason']}")
+            print(f"[manifest_processor] Найден: {name} | published=некорректно | удалить с вложениями")
+            print(f"[manifest_processor] Причина удаления: {data['reason']}")
 
     # Сначала определяем все файлы, на которые ссылаются сохраняемые манифесты.
     keep_files = set()
@@ -191,9 +191,9 @@ def process_manifests():
         try:
             os.remove(path)
             deleted += 1
-            print(f"[МАНИФЕСТ] Удалён: {name} | Причина: {get_deletion_reason(name)}.")
+            print(f"[manifest_processor] Удалён: {name} | Причина: {get_deletion_reason(name)}.")
         except Exception as error:
-            print(f"[МАНИФЕСТ] Критическая ошибка удаления '{name}': {error}")
+            print(f"[manifest_processor] Критическая ошибка удаления '{name}': {error}")
             return 1
 
     kept_drafts = sum(1 for data in manifests.values() if data["status"] == "false")
@@ -201,13 +201,13 @@ def process_manifests():
     removed_manifests = len(delete_manifests)
 
     print(
-        "[МАНИФЕСТ] Итог: "
+        "[manifest_processor] Итог: "
         f"готовых манифестов={ready_manifests}, "
         f"черновиков={kept_drafts}, "
         f"удалённых/некорректных манифестов={removed_manifests}, "
         f"удалённых файлов={deleted}."
     )
-    print("[МАНИФЕСТ] Предварительная обработка завершена.")
+    print("[manifest_processor] Предварительная обработка завершена.")
     return 0
 
 
