@@ -35,16 +35,6 @@ jobs:
           token: ${{ github.token }}
           fetch-depth: 0
 
-      - name: Prepare media integration test
-        if: hashFiles('_input/2026-11-24-1795450727_discussion_83_TechLab.md') != ''
-        run: |
-          cp _published/test_photo_01.jpg _input/
-          cp _published/test_photo_02.jpg _input/
-          cp _published/test_photo_03.webp _input/
-          cp _published/test_video_01.mp4 _input/
-          cp _published/test_video_02.mp4 _input/
-          cp _published/test_video_03.webm _input/
-
       - name: Set up Python Environment
         uses: actions/setup-python@v5
         with:
