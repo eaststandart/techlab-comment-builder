@@ -58,17 +58,17 @@ def parse_front_matter(file_path):
                     meta[key] = value
             return meta, content[match.end():]
     except Exception as e:
-        print(f"[manifest-analyzer] ⚠️ Ошибка парсинга Front Matter в '{os.path.basename(file_path)}': {str(e)}")
+        print(f"[manifest-analyzer] Ошибка парсинга Front Matter в '{os.path.basename(file_path)}': {str(e)}")
     return None, None
 
 def analyze_and_process_media():
-    print("\n=== [manifest-analyzer] АНАЛИЗ ПАПКИ _INPUT ===")
+    print("\n[manifest-analyzer] Анализ папки _input.")
 
     input_dir = os.path.join(os.getcwd(), "_input")
     output_dir = os.path.join(os.getcwd(), "_output")
 
     if not os.path.exists(input_dir) or not os.path.exists(output_dir):
-        print("[manifest-analyzer] ❌ Ошибка: Целевые директории не найдены.")
+        print("[manifest-analyzer] Ошибка: Целевые директории не найдены.")
         return finish_status("ERROR_DIR_NOT_FOUND")
 
     # Защита от начала нового комплекта строго по расширению .md (как в оригинале Журнала)
@@ -104,7 +104,7 @@ def analyze_and_process_media():
         # 2. Контроль времени (Отложенная публикация)
         date_str = meta.get("date", "").strip()
         if not date_str:
-            print(f"[manifest-analyzer] ⚠️ Манифест '{md_name}' пропущен: отсутствует поле даты.")
+            print(f"[manifest-analyzer] Манифест '{md_name}' пропущен: отсутствует поле даты.")
             continue
             
         try:
@@ -162,7 +162,7 @@ def analyze_and_process_media():
 
         # РЕАЛЬНЫЙ ПРОЦЕСС №1: ФИКСАЦИЯ ОБНАРУЖЕНИЯ ГОТОВОГО КОМПЛЕКТА
         teacher = meta.get("teacher", "Unknown").strip()
-        print(f"[manifest-analyzer] 🔥 Обнаружен полностью готовый комплект от '{teacher}'!")
+        print(f"[manifest-analyzer] Обнаружен полностью готовый комплект от '{teacher}'.")
         print("[manifest-analyzer] Поиск завершен. Анализ директории _input остановлен.")
 
         # Превентивная локальная проверка перед физическим переносом файлов
