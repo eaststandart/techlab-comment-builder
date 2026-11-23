@@ -139,7 +139,7 @@ def wait_until_output_empty(fine_token):
         try:
             response = requests.get(CHECK_URL, headers=headers, timeout=30)
             if response.status_code >= 500:
-                print(f"[comment_builder] ❌ Ошибка сервера GitHub API: {response.status_code}. Пауза 60 сек.")
+                print(f"[comment_builder] Ошибка сервера GitHub API: {response.status_code}. Пауза 60 сек.")
                 time.sleep(60)
                 continue
 
@@ -154,9 +154,9 @@ def wait_until_output_empty(fine_token):
                 print("[comment_builder] Папка _output опустела.")
                 return True
             else:
-                print(f"[comment_builder] ⚠️ Нетипичный ответ API: {response.status_code}. Пауза 60 сек.")
+                print(f"[comment_builder] Нетипичный ответ API: {response.status_code}. Пауза 60 сек.")
         except Exception as err:
-            print(f"[comment_builder] ❌ Сетевой сбой API: {str(err)}. Пауза 60 сек.")
+            print(f"[comment_builder] Сетевой сбой API: {str(err)}. Пауза 60 сек.")
 
         time.sleep(OUTPUT_CHECK_INTERVAL)
 
@@ -167,7 +167,7 @@ def run_control_pipeline():
     input_dir = os.path.join(os.getcwd(), "_input")
 
     if not os.path.exists(output_dir) or not os.path.exists(input_dir):
-        print("[comment_builder] ❌ Ошибка: целевые директории не найдены.")
+        print("[comment_builder] Ошибка: целевые директории не найдены.")
         return
 
     fine_token = os.environ.get("MY_FINE_TOKEN")
@@ -178,7 +178,7 @@ def run_control_pipeline():
     bundle_counter = 0
     while True:
         bundle_counter += 1
-        print(f"\n--- [comment_builder] ЦИКЛ ОБРАБОТКИ КОМПЛЕКТОВ №{bundle_counter} ---")
+        print(f"\n[comment_builder] Цикл обработки комплектов №{bundle_counter} ---")
 
         if not sync_repository():
             return
@@ -242,7 +242,7 @@ def run_control_pipeline():
             return
 
         if not notify_site(fine_token):
-            print("[comment_builder] ⚠️ Предупреждение: Сигнал на сайт не отправлен.")
+            print("[comment_builder] Предупреждение: Сигнал на сайт не отправлен.")
 
         if not wait_until_output_empty(fine_token):
             return
