@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 @module  media_compressor_photo.py
-@about   Модуль серверного сжатия графических материалов.
-@purpose Валидация расширений, пропорциональный ресайз больших фото под HD-стандарт и конвертация в WebP.
+@about   Модуль сжатия и преобразования графических файлов.
+@purpose Проверяет поддерживаемые форматы изображений, корректирует ориентацию и размеры фотографий и преобразует их в WebP при подготовке комплектов репозитория eaststandart/techlab-comment-builder.
 @author  TechLab
-@version 1.0.4
+@version 1.0.0
 """
 
 import os
@@ -49,7 +49,7 @@ def compress_image_to_webp(source_path, target_path):
 
             if is_webp and not needs_resize and not orientation_changed:
                 print(
-                    f"[КОМПРЕССОР ФОТО] WebP '{filename}' уже соответствует "
+                    f"[media_compressor_photo] WebP '{filename}' уже соответствует "
                     f"ограничениям ({orig_width}x{orig_height}); оставляем без изменений."
                 )
                 return "PRESERVED"
@@ -65,7 +65,7 @@ def compress_image_to_webp(source_path, target_path):
                 img = img.resize((new_width, new_height), resample_filter)
             else:
                 print(
-                    f"[КОМПРЕССОР ФОТО] Геометрия '{filename}' в пределах нормы "
+                    f"[media_compressor_photo] Геометрия '{filename}' в пределах нормы "
                     f"({orig_width}x{orig_height})."
                 )
 
@@ -86,10 +86,10 @@ def compress_image_to_webp(source_path, target_path):
         compression = (original_size - output_size) / original_size * 100 if original_size else 0
         source_format = ext.lstrip(".").upper()
         print(
-            f"[КОМПРЕССОР ФОТО] Файл: {filename} ({original_size} байт)."
+            f"[media_compressor_photo] Файл: {filename} ({original_size} байт)."
         )
         print(
-            f"[КОМПРЕССОР ФОТО] {source_format} ({orig_width}×{orig_height}) -> "
+            f"[media_compressor_photo] {source_format} ({orig_width}×{orig_height}) -> "
             f"WebP ({output_width}×{output_height}): {output_size} байт "
             f"(сжатие {compression:.1f}%)."
         )
@@ -101,18 +101,18 @@ def compress_image_to_webp(source_path, target_path):
 
     except UnidentifiedImageError as e:
         reason = f"{type(e).__name__}: {e}"
-        print(f"[КОМПРЕССОР ФОТО] Файл повреждён или не читается '{filename}': {reason}")
+        print(f"[media_compressor_photo] Файл повреждён или не читается '{filename}': {reason}")
         return f"FILE_CORRUPTED|{filename}|{reason}"
     except OSError as e:
         reason = f"{type(e).__name__}: {e}"
         if source_reading:
-            print(f"[КОМПРЕССОР ФОТО] Не удалось декодировать изображение '{filename}': {reason}")
+            print(f"[media_compressor_photo] Не удалось декодировать изображение '{filename}': {reason}")
             return f"FILE_CORRUPTED|{filename}|{reason}"
-        print(f"[КОМПРЕССОР ФОТО] Сбой чтения или записи при обработке '{filename}': {reason}")
+        print(f"[media_compressor_photo] Сбой чтения или записи при обработке '{filename}': {reason}")
         return f"RETRY|{filename}|{reason}"
     except Exception as e:
         reason = f"{type(e).__name__}: {e}"
-        print(f"[КОМПРЕССОР ФОТО] Временный сбой оптимизации '{filename}': {reason}")
+        print(f"[media_compressor_photo] Временный сбой оптимизации '{filename}': {reason}")
         return f"RETRY|{filename}|{reason}"
     finally:
         if temp_path and os.path.exists(temp_path):
