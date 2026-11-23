@@ -37,8 +37,8 @@ teacher: "TechLab"
 
 ### Медиафайлы
 
-![Фото 01 — тестовый снимок](photo-01.jpg)
-![Фото 02 — второй тестовый снимок](photo-02.jpg)
+![Фото 01 — тестовый снимок](test_photo_01.jpg)
+![Фото 02 — второй тестовый снимок](test_photo_02.jpg)
 
 ## 📸 Фотоматериалы
 
@@ -52,7 +52,7 @@ teacher: "TechLab"
 
 ### Медиафайлы
 
-![Фото 03 — WebP](photo-03.webp)
+![Фото 03 — WebP](test_photo_03.webp)
 
 ## 🎥 Видеоматериалы
 
@@ -66,8 +66,8 @@ teacher: "TechLab"
 
 ### Медиафайлы
 
-![[video-01.mp4]]
-![[video-02.mp4]]
+![[test_video_01.mp4]]
+![[test_video_02.mp4]]
 
 ## 🎥 Видеоматериалы
 
@@ -81,4 +81,4 @@ teacher: "TechLab"
 
 ### Медиафайлы
 
-![[video-03.webm]]
+![[test_video_03.webm]]
