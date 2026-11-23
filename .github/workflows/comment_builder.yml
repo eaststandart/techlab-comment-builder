@@ -13,6 +13,10 @@ on:
     paths:
       - '_input/**.md'
 
+  schedule:
+    - cron: '5 0 * * *'
+      timezone: 'Asia/Vladivostok'
+
 permissions:
   contents: write
 
