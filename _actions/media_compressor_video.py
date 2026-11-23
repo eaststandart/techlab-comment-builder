@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 @module  media_compressor_video.py
-@about   Модуль серверного двухрежимного сжатия видеоматериалов.
-@purpose Сохранение WebM без повторного кодирования при подходящей геометрии и
-         двухрежимное преобразование остальных видео в WebM.
+@about   Модуль сжатия и преобразования видеофайлов.
+@purpose Определяет геометрию и состояние видео, сохраняет подходящие WebM без повторного кодирования и преобразует остальные поддерживаемые видео в WebM при подготовке комплектов репозитория eaststandart/techlab-comment-builder.
 @author  TechLab
-@version 1.0.3
+@version 1.0.0
 """
 
 import json
@@ -62,9 +61,9 @@ def _is_corrupt_media_error(error_text):
 def _print_mode_result(label, size):
     """Выводит только размер файла после соответствующего режима."""
     if size == float("inf"):
-        print(f"[КОМПРЕССОР ВИДЕО] {label}: выходной файл не создан.")
+        print(f"[media_compressor_video] {label}: выходной файл не создан.")
     else:
-        print(f"[КОМПРЕССОР ВИДЕО] {label}: {size} байт.")
+        print(f"[media_compressor_video] {label}: {size} байт.")
 
 
 def compress_video_to_webm(source_path, target_path):
@@ -99,17 +98,17 @@ def compress_video_to_webm(source_path, target_path):
             width, height = get_video_geometry(source_path)
             if max(width, height) <= MAX_VIDEO_SIDE:
                 print(
-                    f"[КОМПРЕССОР ВИДЕО] WebM '{filename}' уже соответствует "
+                    f"[media_compressor_video] WebM '{filename}' уже соответствует "
                     f"ограничениям ({width}x{height}); оставляем без изменений."
                 )
                 return "PRESERVED"
             print(
-                f"[КОМПРЕССОР ВИДЕО] WebM '{filename}' превышает ограничение: "
+                f"[media_compressor_video] WebM '{filename}' превышает ограничение: "
                 f"{width}x{height}. Уменьшаем геометрию."
             )
 
         source_size = os.path.getsize(source_path)
-        print(f"[КОМПРЕССОР ВИДЕО] Файл: {filename} ({source_size} байт).")
+        print(f"[media_compressor_video] Файл: {filename} ({source_size} байт).")
 
         for temp_file in (tmp_crf_path, tmp_bit_path):
             if os.path.exists(temp_file):
@@ -142,20 +141,20 @@ def compress_video_to_webm(source_path, target_path):
             difference = size_bit - size_crf
             compression = (source_size - size_crf) / source_size * 100 if source_size > 0 else 0
             result_text = f"сжатие {compression:.1f}%" if compression >= 0 else f"увеличение размера {abs(compression):.1f}%"
-            print(f"[КОМПРЕССОР ВИДЕО] Выбран режим CRF 25 ({result_text}).")
+            print(f"[media_compressor_video] Выбран режим CRF 25 ({result_text}).")
         else:
             winner = tmp_bit_path
             loser = tmp_crf_path
             difference = size_crf - size_bit
             compression = (source_size - size_bit) / source_size * 100 if source_size > 0 else 0
             result_text = f"сжатие {compression:.1f}%" if compression >= 0 else f"увеличение размера {abs(compression):.1f}%"
-            print(f"[КОМПРЕССОР ВИДЕО] Выбран режим 700 kbps ({result_text}).")
+            print(f"[media_compressor_video] Выбран режим 700 kbps ({result_text}).")
 
         os.replace(winner, target_path)
         if os.path.exists(loser):
             os.remove(loser)
 
-        print(f"[КОМПРЕССОР ВИДЕО] Обработка '{filename}' успешно завершена.")
+        print(f"[media_compressor_video] Обработка '{filename}' успешно завершена.")
         return "PRESERVED" if is_webm else True
 
     except subprocess.CalledProcessError as e:
@@ -171,18 +170,18 @@ def compress_video_to_webm(source_path, target_path):
                 (line.strip() for line in reversed(diagnostic_lines) if line.strip()),
                 f"FFmpeg exit code {e.returncode}"
             )
-        print(f"[КОМПРЕССОР ВИДЕО] Сбой FFmpeg для '{filename}'. Код возврата: {e.returncode}")
+        print(f"[media_compressor_video] Сбой FFmpeg для '{filename}'. Код возврата: {e.returncode}")
         if stdout_text:
-            print(f"[КОМПРЕССОР ВИДЕО] STDOUT:\n{stdout_text}")
+            print(f"[media_compressor_video] STDOUT:\n{stdout_text}")
         if stderr_text:
-            print(f"[КОМПРЕССОР ВИДЕО] STDERR FFmpeg:\n{stderr_text}")
+            print(f"[media_compressor_video] STDERR FFmpeg:\n{stderr_text}")
         if _is_corrupt_media_error(reason):
             return f"FILE_CORRUPTED|{filename}|{reason}"
         return f"RETRY|{filename}|{reason}"
 
     except Exception as e:
         reason = f"{type(e).__name__}: {e}"
-        print(f"[КОМПРЕССОР ВИДЕО] Ошибка обработки '{filename}': {reason}")
+        print(f"[media_compressor_video] Ошибка обработки '{filename}': {reason}")
         return f"RETRY|{filename}|{reason}"
 
     finally:
