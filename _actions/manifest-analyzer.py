@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 @module  manifest-analyzer.py
-@about   Модуль проверки комплектности и оптимизации медиа-пакетов.
-@purpose Группировка медиа-файлов, сжатие в WebP на месте в _input и чистый перенос в _output.
+@about   Модуль проверки комплектности и подготовки медиафайлов.
+@purpose Проверяет манифесты и комплектность вложений в _input репозитория eaststandart/techlab-comment-builder, учитывает дату публикации, стандартизирует имена, сжимает фотографии в WebP и видео в WebM и переносит готовые комплекты в _output.
 @author  TechLab
-@version 2.0.0
+@version 1.0.0
 """
 
 import os
@@ -23,7 +23,7 @@ from comment_renamer import standardize_bundle_names
 
 def finish_status(status):
     """Печатает единый статус для вызывающего процесса и сохраняет его в GitHub Actions."""
-    print(f"[АНАЛИЗАТОР] Финальный статус работы модуля: {status}")
+    print(f"[manifest-analyzer] Финальный статус работы модуля: {status}")
     if "GITHUB_ENV" in os.environ:
         with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
             safe_status = status.replace("\\r", " ").replace("\\n", " ")
@@ -58,7 +58,7 @@ def parse_front_matter(file_path):
                     meta[key] = value
             return meta, content[match.end():]
     except Exception as e:
-        print(f"[АНАЛИЗАТОР] ⚠️ Ошибка парсинга Front Matter в '{os.path.basename(file_path)}': {str(e)}")
+        print(f"[manifest-analyzer] ⚠️ Ошибка парсинга Front Matter в '{os.path.basename(file_path)}': {str(e)}")
     return None, None
 
 def analyze_and_process_media():
@@ -68,24 +68,24 @@ def analyze_and_process_media():
     output_dir = os.path.join(os.getcwd(), "_output")
 
     if not os.path.exists(input_dir) or not os.path.exists(output_dir):
-        print("[АНАЛИЗАТОР] ❌ Ошибка: Целевые директории не найдены.")
+        print("[manifest-analyzer] ❌ Ошибка: Целевые директории не найдены.")
         return finish_status("ERROR_DIR_NOT_FOUND")
 
     # Защита от начала нового комплекта строго по расширению .md (как в оригинале Журнала)
     output_files = sorted(f for f in os.listdir(output_dir) if f.endswith(".md"))
     if output_files:
-        print(f"[АНАЛИЗАТОР] Папка _output занята: {len(output_files)} .md файл(ов). Новый комплект не переносим.")
+        print(f"[manifest-analyzer] Папка _output занята: {len(output_files)} .md файл(ов). Новый комплект не переносим.")
         return finish_status("OUTPUT_BUSY")
 
     all_files = sorted(os.listdir(input_dir))
     md_files = [f for f in all_files if f.endswith(".md")]
 
     if not md_files:
-        print("[АНАЛИЗАТОР] В директории _input файлы манифестов (.md) отсутствуют.")
+        print("[manifest-analyzer] В директории _input файлы манифестов (.md) отсутствуют.")
         return finish_status("NO_FILES")
 
     current_vl_date = get_vladivostok_date()
-    print(f"[АНАЛИЗАТОР] Текущая дата сервера по Владивостоку: {current_vl_date}")
+    print(f"[manifest-analyzer] Текущая дата сервера по Владивостоку: {current_vl_date}")
 
     # Детерминированный поиск первого полностью готового комплекта
     for md_name in md_files:
@@ -98,22 +98,22 @@ def analyze_and_process_media():
         # 1. Контроль флага видимости (published)
         published_val = meta.get("published", "false").lower()
         if published_val != "true":
-            print(f"[АНАЛИЗАТОР] Манифест '{md_name}' пропущен: опубликован как черновик (published: false).")
+            print(f"[manifest-analyzer] Манифест '{md_name}' пропущен: опубликован как черновик (published: false).")
             continue
 
         # 2. Контроль времени (Отложенная публикация)
         date_str = meta.get("date", "").strip()
         if not date_str:
-            print(f"[АНАЛИЗАТОР] ⚠️ Манифест '{md_name}' пропущен: отсутствует поле даты.")
+            print(f"[manifest-analyzer] ⚠️ Манифест '{md_name}' пропущен: отсутствует поле даты.")
             continue
             
         try:
             packet_date = datetime.strptime(date_str, "%Y-%m-%d").date()
             if packet_date > current_vl_date:
-                print(f"[АНАЛИЗАТОР] Манифест '{md_name}' отложен: дата публикации ({date_str}) еще не наступила.")
+                print(f"[manifest-analyzer] Манифест '{md_name}' отложен: дата публикации ({date_str}) еще не наступила.")
                 continue
         except Exception:
-            print(f"[АНАЛИЗАТОР] ⚠️ Манифест '{md_name}' пропущен: неверный формат даты '{date_str}'.")
+            print(f"[manifest-analyzer] ⚠️ Манифест '{md_name}' пропущен: неверный формат даты '{date_str}'.")
             continue
 
         # 3. Сбор вложений из WikiLinks и Markdown-ссылок.
@@ -157,13 +157,13 @@ def analyze_and_process_media():
                 missing_files.append(file_name)
 
         if not bundle_ready:
-            print(f"[АНАЛИЗАТОР] Манифест '{md_name}' не собран. Отсутствуют файлы: {missing_files}. Пропускаем до полной сборки.")
+            print(f"[manifest-analyzer] Манифест '{md_name}' не собран. Отсутствуют файлы: {missing_files}. Пропускаем до полной сборки.")
             continue
 
         # РЕАЛЬНЫЙ ПРОЦЕСС №1: ФИКСАЦИЯ ОБНАРУЖЕНИЯ ГОТОВОГО КОМПЛЕКТА
         teacher = meta.get("teacher", "Unknown").strip()
-        print(f"[АНАЛИЗАТОР] 🔥 Обнаружен полностью готовый комплект от '{teacher}'!")
-        print("[АНАЛИЗАТОР] Поиск завершен. Анализ директории _input остановлен.")
+        print(f"[manifest-analyzer] 🔥 Обнаружен полностью готовый комплект от '{teacher}'!")
+        print("[manifest-analyzer] Поиск завершен. Анализ директории _input остановлен.")
 
         # Превентивная локальная проверка перед физическим переносом файлов
         if sorted(f for f in os.listdir(output_dir) if f.endswith(".md")):
@@ -201,7 +201,7 @@ def analyze_and_process_media():
                         try:
                             result = compress_image_to_webp(raw_path, target_path)
                         except Exception as e:
-                            print(f"[АНАЛИЗАТОР] Ошибка обработки фото '{raw_name}': {e}")
+                            print(f"[manifest-analyzer] Ошибка обработки фото '{raw_name}': {e}")
                             result = False
 
                         if isinstance(result, str) and result.startswith(("FILE_CORRUPTED|", "RETRY|")):
@@ -219,7 +219,7 @@ def analyze_and_process_media():
                         try:
                             result = compress_video_to_webm(raw_path, target_path)
                         except Exception as e:
-                            print(f"[АНАЛИЗАТОР] Ошибка обработки видео '{raw_name}': {e}")
+                            print(f"[manifest-analyzer] Ошибка обработки видео '{raw_name}': {e}")
                             result = False
 
                         if isinstance(result, str) and result.startswith(("FILE_CORRUPTED|", "RETRY|")):
@@ -235,18 +235,18 @@ def analyze_and_process_media():
 
                     else:
                         if not os.path.isfile(raw_path):
-                            print(f"[АНАЛИЗАТОР] Файл комплекта '{raw_name}' не найден после стандартизации.")
+                            print(f"[manifest-analyzer] Файл комплекта '{raw_name}' не найден после стандартизации.")
                             processing_failed = True
                             break
                         final_transfer_list.append(raw_name)
 
                 if processing_failed:
                     print(
-                        "[АНАЛИЗАТОР] Комплект не готов. Временные результаты удаляются; "
+                        "[manifest-analyzer] Комплект не готов. Временные результаты удаляются; "
                         "исходный комплект в _input не изменён."
                     )
                     if processing_status:
-                        print(f"[АНАЛИЗАТОР] Причина остановки обработки: {processing_status}")
+                        print(f"[manifest-analyzer] Причина остановки обработки: {processing_status}")
                         return finish_status(processing_status)
                     return finish_status("RETRY|unknown|Ошибка обработки файла комплекта без подробностей.")
 
@@ -256,7 +256,7 @@ def analyze_and_process_media():
                     if not os.path.isfile(os.path.join(work_dir, name))
                 ]
                 if missing_results:
-                    print(f"[АНАЛИЗАТОР] Не найдены готовые файлы: {missing_results}")
+                    print(f"[manifest-analyzer] Не найдены готовые файлы: {missing_results}")
                     return finish_status(f"RETRY|{missing_results[0]}|Подготовленный файл результата отсутствует.")
 
                 # Формируем обновлённый манифест только после успешной обработки всех файлов.
@@ -277,7 +277,7 @@ def analyze_and_process_media():
                     if os.path.exists(os.path.join(output_dir, name))
                 ]
                 if collisions:
-                    print(f"[АНАЛИЗАТОР] В _output уже существуют файлы: {collisions}")
+                    print(f"[manifest-analyzer] В _output уже существуют файлы: {collisions}")
                     return finish_status("ERROR_OUTPUT_COLLISION")
 
                 # Переносим только полностью подготовленный комплект.
@@ -287,7 +287,7 @@ def analyze_and_process_media():
                         output_path = os.path.join(output_dir, file_name)
                         os.replace(staged_path, output_path)
                         moved_output.append((output_path, staged_path))
-                        print(f"[АНАЛИЗАТОР] Подготовлен файл комплекта: {file_name}")
+                        print(f"[manifest-analyzer] Подготовлен файл комплекта: {file_name}")
 
                     output_md_path = os.path.join(output_dir, final_md_name)
                     os.replace(staged_md_path, output_md_path)
@@ -307,18 +307,18 @@ def analyze_and_process_media():
 
                 os.remove(md_path)
                 print(
-                    f"[АНАЛИЗАТОР] Полный комплект '{final_md_name}' перемещён в _output."
+                    f"[manifest-analyzer] Полный комплект '{final_md_name}' перемещён в _output."
                 )
 
         except Exception as e:
-            print(f"[АНАЛИЗАТОР] Ошибка подготовки комплекта: {type(e).__name__}: {e}")
+            print(f"[manifest-analyzer] Ошибка подготовки комплекта: {type(e).__name__}: {e}")
             return finish_status("ERROR_BUNDLE_PROCESSING")
 
         # Финальный статус передаётся вызывающему процессу единым способом.
         status = f"SUCCESS_{teacher}"
         return finish_status(status)
 
-    print("[АНАЛИЗАТОР] Готовых или открытых по дате комплектов для переноса не обнаружено.")
+    print("[manifest-analyzer] Готовых или открытых по дате комплектов для переноса не обнаружено.")
     return finish_status("NO_BUNDLE_READY")
 
 if __name__ == "__main__":
