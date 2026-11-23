@@ -62,7 +62,7 @@ def parse_front_matter(file_path):
     return None, None
 
 def analyze_and_process_media():
-    print("\n=== [МОДУЛЬ MANIFEST-ANALYZER] АНАЛИЗ ПАПКИ _INPUT ===")
+    print("\n=== [manifest-analyzer] АНАЛИЗ ПАПКИ _INPUT ===")
 
     input_dir = os.path.join(os.getcwd(), "_input")
     output_dir = os.path.join(os.getcwd(), "_output")
