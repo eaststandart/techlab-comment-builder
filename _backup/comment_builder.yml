@@ -1,0 +1,48 @@
+# ==============================================================================
+# @module  comment_builder.yml
+# @about   Модуль автоматизации обработки комплектов комментариев.
+# @purpose Защита от параллельного запуска процессов и вызов главного диспетчера.
+# @author  TechLab
+# @version 1.0.0
+# ==============================================================================
+
+name: TechLab Comment Builder
+
+on:
+  push:
+    paths:
+      - '_input/**.md'
+
+permissions:
+  contents: write
+
+# Один запущенный диспетчер последовательно обработает все поступившие комплекты.
+concurrency:
+  group: comment-dispatcher
+  cancel-in-progress: false
+
+jobs:
+  check-and-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Comment Builder Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
+          fetch-depth: 0
+
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python Dependencies
+        run: pip install pyyaml requests pillow
+
+      - name: Setup Fast FFmpeg Cache
+        uses: AnimMouse/setup-ffmpeg@v1
+
+      - name: Run Comment Builder
+        env:
+          MY_FINE_TOKEN: ${{ secrets.MY_FINE_TOKEN }}
+        run: python _actions/comment_builder.py
