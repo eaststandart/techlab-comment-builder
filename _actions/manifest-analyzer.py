@@ -113,7 +113,7 @@ def analyze_and_process_media():
                 print(f"[manifest-analyzer] Манифест '{md_name}' отложен: дата публикации ({date_str}) еще не наступила.")
                 continue
         except Exception:
-            print(f"[manifest-analyzer] ⚠️ Манифест '{md_name}' пропущен: неверный формат даты '{date_str}'.")
+            print(f"[manifest-analyzer] Манифест '{md_name}' пропущен: неверный формат даты '{date_str}'.")
             continue
 
         # 3. Сбор вложений из WikiLinks и Markdown-ссылок.
