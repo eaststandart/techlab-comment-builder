@@ -13,7 +13,7 @@ import os
 import subprocess
 
 
-MAX_VIDEO_SIDE = 720
+MAX_VIDEO_SIDE = 854
 
 
 def get_video_geometry(path):
@@ -81,7 +81,7 @@ def compress_video_to_webm(source_path, target_path):
     tmp_bit_path = os.path.join(base_dir, "tmp_bitrate_700k.webm")
 
     geo_audio_opts = [
-        "-vf", "scale='if(gte(iw,ih),720,-1)':'if(gte(iw,ih),-1,720)',scale=trunc(iw/2)*2:trunc(ih/2)*2",
+        "-vf", "scale='if(gte(iw,ih),854,-1)':'if(gte(iw,ih),-1,854)',scale=trunc(iw/2)*2:trunc(ih/2)*2",
         "-pix_fmt", "yuv420p",
         "-r", "30",
         "-c:a", "libvorbis",
