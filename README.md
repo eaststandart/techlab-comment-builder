@@ -4,7 +4,7 @@
 # Система автоматизации комментариев
 
 <p align="center"> 
-    <i>An automated buffer gateway (GitOps) for processing media and publishing comments to GitHub Discussions.</i>
+    <i>An automated buffer gateway (GitOps) for processing media comments and publishing them to GitHub Discussions.</i>
 </p>
 
 Этот репозиторий выполняет роль изолированного буферного шлюза и сервера автоматической обработки комментариев с фотографиями и видеоматериалами для дискуссий детско-юношеского инженерного клуба во Владивостоке. Проект развернут на платформе [Творческой лаборатории познавательного развития](https://eaststandart.github.io/).
