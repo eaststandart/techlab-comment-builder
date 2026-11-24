@@ -5,8 +5,8 @@ discussion_comment:
 date: 2026-11-21
 timestamp: 1795262400
 published: true
-title: ""
-teacher: "eaststandart"
+title: 
+teacher: eaststandart
 ---
 
 # Комментарий для публикации
@@ -33,8 +33,8 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![Фото 01 — тестовый снимок](test_photo_01.jpg)
-![Фото 02 — второй тестовый снимок](test_photo_02.jpg)
+![Фото 01 — тестовый снимок](2026-11-21-1795501819_discussion_83_eaststandart_photo_01.webp)
+![Фото 02 — второй тестовый снимок](2026-11-21-1795501819_discussion_83_eaststandart_photo_02.webp)
 
 ## 📸 Фотоматериалы
 
@@ -48,7 +48,7 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![Фото 03 — WebP](test_photo_03.webp)
+![Фото 03 — WebP](2026-11-21-1795501819_discussion_83_eaststandart_photo_03.webp)
 
 ## 🎥 Видеоматериалы
 
@@ -60,8 +60,8 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[test_video_01.mp4]]
-![[test_video_02.mp4]]
+![[2026-11-21-1795501819_discussion_83_eaststandart_video_01.webm]]
+![[2026-11-21-1795501819_discussion_83_eaststandart_video_02.webm]]
 
 ## 🎥 Видеоматериалы
 
@@ -75,4 +75,4 @@ teacher: "eaststandart"
 
 ### Медиафайлы
 
-![[test_video_03.webm]]
+![[2026-11-21-1795501819_discussion_83_eaststandart_video_03.webm]]
