@@ -178,7 +178,7 @@ def run_control_pipeline():
     bundle_counter = 0
     while True:
         bundle_counter += 1
-        print(f"\n[comment_builder] Цикл обработки комплектов №{bundle_counter} ---")
+        print(f"\n[comment_builder] Цикл обработки комплектов №{bundle_counter}.")
 
         if not sync_repository():
             return
