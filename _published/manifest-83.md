@@ -7,7 +7,7 @@ timestamp: 1795262400
 published: true
 title: ""
 teacher: "eaststandart"
-tg_public_notify: ["-1002555901754_38g", "-1002555901754_45"]
+tg_public_notify: ["-1002555901754_45"]
 tg_personal_id: 
 wa_personal_id: 
 ---
