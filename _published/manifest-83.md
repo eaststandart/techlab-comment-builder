@@ -1,13 +1,13 @@
 ---
 publish_as_bot: false
-discussion_number: 45
+discussion_number: 83
 discussion_comment: 
 date: 2026-11-21
 timestamp: 1795262400
 published: true
 title: ""
 teacher: "eaststandart"
-tg_public_notify: ["-1002555901754_38g"]
+tg_public_notify: ["-1002555901754_38g", "-1002555901754_45"]
 tg_personal_id: 
 wa_personal_id: 
 ---
