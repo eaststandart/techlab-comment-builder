@@ -84,3 +84,10 @@ none
 ### Медиафайлы
 
 ![2026-11-22-1795711250_video.webm|200](https://github.com/user-attachments/assets/ee586929-16e1-4a20-b6ca-2660f6c37d07)
+
+<video controls style="width: 200px; max-width: 100%;">
+  <source src="https://github.com/user-attachments/assets/ee586929-16e1-4a20-b6ca-2660f6c37d07" type="video/webm">
+</video>
+<video controls style="width: 200px; max-width: 100%;">
+  <source src="https://github.com/user-attachments/assets/ee586929-16e1-4a20-b6ca-2660f6c37d07" type="video/webm">
+</video>
