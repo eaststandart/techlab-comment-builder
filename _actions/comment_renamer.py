@@ -53,6 +53,11 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
     if timestamp is None:
         timestamp = str(int(time.time()))
 
+    # Резервный подбор логина для веб-интерфейса.
+    # Он используется для имени комплекта, но не для проверки имени исходного манифеста.
+    if not teacher:
+        teacher = os.environ.get("GITHUB_ACTOR", "WebUser").strip()
+
     # Проверяем итоговое имя по всем манифестам в _input.
     # Текущий исходный манифест исключаем из проверки.
     input_root = os.path.dirname(input_dir)
@@ -88,11 +93,6 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
                 "Не удалось подобрать свободное имя манифеста в _input "
                 "за 10 попыток с интервалом 1 минута."
             )
-
-    # Резервный подбор логина для веб-интерфейса.
-    # Он используется для имени комплекта, но не для проверки имени исходного манифеста.
-    if not teacher:
-        teacher = os.environ.get("GITHUB_ACTOR", "WebUser").strip()
 
     # Сборка базового префикса без идентификатора комментария
     base_filename = f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}"
