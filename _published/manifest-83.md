@@ -1,5 +1,5 @@
 ---
-publish_as_bot: false
+publish_as_bot: true
 discussion_number: 83
 discussion_comment: 
 date: 2026-11-22
