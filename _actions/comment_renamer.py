@@ -10,6 +10,7 @@
 
 import os
 import re
+import time
 
 def standardize_bundle_names(input_dir, meta, body_text, attachments):
     """
@@ -50,8 +51,43 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
 
     # Если timestamp нет ни в имени, ни во Frontmatter — генерируем новый.
     if timestamp is None:
-        import time
         timestamp = str(int(time.time()))
+
+    # Проверяем итоговое имя по всем манифестам в _input.
+    # Текущий исходный манифест исключаем из проверки.
+    input_root = os.path.dirname(input_dir)
+    current_manifest_names = {
+        name for name in os.listdir(input_dir)
+        if name.lower().endswith(".md")
+    }
+    current_manifest_name = next(iter(current_manifest_names), None)
+    existing_manifests = {
+        name for name in os.listdir(input_root)
+        if name.lower().endswith(".md") and name != current_manifest_name
+    }
+
+    for attempt in range(10):
+        candidate_name = (
+            f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}.md"
+        )
+        if candidate_name not in existing_manifests:
+            break
+
+        print(
+            f"[comment_renamer] Имя '{candidate_name}' уже занято в _input. "
+            f"Ожидание 1 минуту перед повторной попыткой ({attempt + 1}/10)."
+        )
+        time.sleep(60)
+        timestamp = str(int(time.time()))
+    else:
+        candidate_name = (
+            f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}.md"
+        )
+        if candidate_name in existing_manifests:
+            raise RuntimeError(
+                "Не удалось подобрать свободное имя манифеста в _input "
+                "за 10 попыток с интервалом 1 минута."
+            )
 
     # Резервный подбор логина для веб-интерфейса.
     # Он используется для имени комплекта, но не для проверки имени исходного манифеста.
