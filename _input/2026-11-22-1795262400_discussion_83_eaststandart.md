@@ -4,7 +4,7 @@ discussion_number: 83
 discussion_comment: "19929513"
 date: 2026-11-22
 timestamp: 1795262400
-published: true
+published: false
 title: "22.11.2026 · В объективе клуба [Верхнепортовая]"
 teacher: eaststandart
 tg_public_notify: 
