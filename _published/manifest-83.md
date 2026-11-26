@@ -8,7 +8,7 @@ published: true
 title: ""
 teacher: "eaststandart"
 tg_public_notify: ["-1002555901754_45"]
-tg_personal_id: 
+tg_personal_id: [511009121]
 wa_personal_id: 
 ---
 
