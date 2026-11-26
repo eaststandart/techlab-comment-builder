@@ -9,6 +9,8 @@
 name: TechLab Comment Builder
 
 on:
+  workflow_dispatch:
+
   push:
     paths:
       - '_input/**.md'
