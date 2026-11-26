@@ -9,7 +9,7 @@ title: ""
 teacher: "eaststandart"
 tg_public_notify: 
 tg_personal_id: ["511009121"]
-wa_personal_id: ["79147207794"]
+wa_personal_id: 
 ---
 
 # Комментарий для публикации
