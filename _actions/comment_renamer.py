@@ -35,8 +35,8 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
         if len(manifest_files) == 1:
             manifest_name = manifest_files[0]
             manifest_pattern = (
-                rf"{re.escape(date_str)}-(\\d+)_discussion_"
-                rf"{re.escape(discussion)}_{re.escape(frontmatter_teacher)}\\.md"
+                rf"{re.escape(date_str)}-(\d+)_discussion_"
+                rf"{re.escape(discussion)}_{re.escape(frontmatter_teacher)}\.md"
             )
             match = re.fullmatch(manifest_pattern, manifest_name)
             if match:
