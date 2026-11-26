@@ -84,6 +84,10 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
         time.sleep(60)
         timestamp = str(int(time.time()))
     else:
+        existing_manifests = {
+            name for name in os.listdir(input_root)
+            if name.lower().endswith(".md") and name != current_manifest_name
+        }
         candidate_name = (
             f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}.md"
         )
