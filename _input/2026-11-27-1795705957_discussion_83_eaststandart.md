@@ -2,7 +2,7 @@
 publish_as_bot: true
 discussion_number: 83
 date: 2026-11-27
-timestamp: 1795705975
+timestamp: 1795705986
 published: true
 title: "В объективе клуба [Русская]"
 teacher: "eaststandart"
