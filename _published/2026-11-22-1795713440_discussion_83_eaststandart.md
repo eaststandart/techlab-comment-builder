@@ -1,5 +1,4 @@
 ---
-# Повторный тест после восстановления исходных бинарных файлов.
 publish_as_bot: true
 discussion_number: 83
 discussion_comment: "19928485"
