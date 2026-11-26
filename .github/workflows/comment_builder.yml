@@ -45,6 +45,8 @@ jobs:
 
       - name: Setup Fast FFmpeg Cache
         uses: AnimMouse/setup-ffmpeg@v1
+        with:
+          version: '9.0'
 
       - name: Run Comment Builder
         env:
