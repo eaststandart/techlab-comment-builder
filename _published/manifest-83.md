@@ -7,9 +7,9 @@ timestamp: 1795262400
 published: true
 title: ""
 teacher: "eaststandart"
-tg_public_notify: ["-1002555901754_45"]
+tg_public_notify: 
 tg_personal_id: [511009121]
-wa_personal_id: 
+wa_personal_id: [79147207794]
 ---
 
 # Комментарий для публикации
