@@ -9,6 +9,7 @@
 """
 
 import os
+import re
 
 def standardize_bundle_names(input_dir, meta, body_text, attachments):
     """
@@ -20,13 +21,42 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
     discussion = meta.get("discussion_number", "0").strip()
     teacher = meta.get("teacher", "").strip()
     
-    # Резервный подбор логина для веб-интерфейса
+    # Сначала проверяем timestamp в имени исходного манифеста.
+    # Имя считается соответствующим формату, только если остальные части
+    # полностью совпадают с date, discussion_number и teacher из Frontmatter.
+    frontmatter_teacher = teacher
+    timestamp = None
+
+    if date_str and discussion and frontmatter_teacher:
+        manifest_files = [
+            name for name in os.listdir(input_dir)
+            if name.lower().endswith(".md")
+        ]
+        if len(manifest_files) == 1:
+            manifest_name = manifest_files[0]
+            manifest_pattern = (
+                rf"{re.escape(date_str)}-(\\d+)_discussion_"
+                rf"{re.escape(discussion)}_{re.escape(frontmatter_teacher)}\\.md"
+            )
+            match = re.fullmatch(manifest_pattern, manifest_name)
+            if match:
+                timestamp = match.group(1)
+
+    # Если имя манифеста не подошло, используем timestamp из Frontmatter.
+    if timestamp is None:
+        frontmatter_timestamp = meta.get("timestamp", "").strip()
+        if frontmatter_timestamp.isdigit():
+            timestamp = frontmatter_timestamp
+
+    # Если timestamp нет ни в имени, ни во Frontmatter — генерируем новый.
+    if timestamp is None:
+        import time
+        timestamp = str(int(time.time()))
+
+    # Резервный подбор логина для веб-интерфейса.
+    # Он используется для имени комплекта, но не для проверки имени исходного манифеста.
     if not teacher:
         teacher = os.environ.get("GITHUB_ACTOR", "WebUser").strip()
-
-    import time
-    # Генерируем единый секундный штамп для всего пакета
-    timestamp = int(time.time())
 
     # Сборка базового префикса без идентификатора комментария
     base_filename = f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}"
