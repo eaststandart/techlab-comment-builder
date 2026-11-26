@@ -66,12 +66,11 @@ def standardize_bundle_names(input_dir, meta, body_text, attachments):
         if name.lower().endswith(".md")
     }
     current_manifest_name = next(iter(current_manifest_names), None)
-    existing_manifests = {
-        name for name in os.listdir(input_root)
-        if name.lower().endswith(".md") and name != current_manifest_name
-    }
-
     for attempt in range(10):
+        existing_manifests = {
+            name for name in os.listdir(input_root)
+            if name.lower().endswith(".md") and name != current_manifest_name
+        }
         candidate_name = (
             f"{date_str}-{timestamp}_discussion_{discussion}_{teacher}.md"
         )
