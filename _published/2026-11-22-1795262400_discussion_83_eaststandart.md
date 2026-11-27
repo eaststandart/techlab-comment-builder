@@ -7,9 +7,9 @@ timestamp: 1795262400
 published: false
 title: "22.11.2026 · В объективе клуба [Верхнепортовая]"
 teacher: eaststandart
-tg_public_notify: 
-tg_personal_id: ["511009121"]
-wa_personal_id: 
+tg_public_notify: ["-1002555901754_38", "-1002555901754_42"]
+tg_personal_id: ["511009121", "759585583"]
+wa_personal_id: ["79147207794"]
 resource: "https://github.com/eaststandart/eaststandart.github.io/discussions/83?sort=new#discussioncomment-19929513"
 ---
 
